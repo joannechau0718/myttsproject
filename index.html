@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>한국어 음성 합성 · Gemini TTS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–bg: #0b0b0e;
+–surface: rgba(255,255,255,0.025);
+–border: rgba(255,255,255,0.07);
+–border-active: rgba(210,55,55,0.5);
+–red: #c83232;
+–red-glow: rgba(200,50,50,0.3);
+–text: #e2d9d0;
+–text-dim: #555;
+–text-muted: #3a3a3a;
+–mono: ‘JetBrains Mono’, monospace;
+–serif: ‘Nanum Myeongjo’, Georgia, serif;
+}
+
+html, body {
+height: 100%;
+background: var(–bg);
+color: var(–text);
+font-family: var(–serif);
+}
+
+body {
+min-height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 2rem 1rem;
+background-image:
+radial-gradient(ellipse 90% 50% at 50% -5%, rgba(180,25,25,0.1) 0%, transparent 65%),
+repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.012) 40px),
+repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.012) 40px);
+}
+
+::selection { background: rgba(200,50,50,0.35); }
+
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
+
+.wrap {
+width: 100%;
+max-width: 580px;
+animation: fadeUp 0.6s ease both;
+}
+
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(16px); }
+to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Header ── */
+.header { text-align: center; margin-bottom: 3rem; }
+
+.eyebrow {
+font-family: var(–mono);
+font-size: 0.58rem;
+font-weight: 300;
+letter-spacing: 0.45em;
+color: #333;
+text-transform: uppercase;
+margin-bottom: 1.1rem;
+}
+
+h1 {
+font-size: clamp(2rem, 6vw, 2.8rem);
+font-weight: 800;
+letter-spacing: -0.025em;
+line-height: 1.05;
+color: var(–text);
+}
+
+.subtitle {
+margin-top: 0.75rem;
+font-family: var(–mono);
+font-size: 0.7rem;
+color: var(–text-dim);
+letter-spacing: 0.06em;
+}
+
+/* ── Divider ── */
+.divider {
+display: flex;
+align-items: center;
+gap: 1rem;
+margin: 0 0 2.5rem;
+}
+.divider-line {
+flex: 1;
+height: 1px;
+background: linear-gradient(to right, transparent, var(–border));
+}
+.divider-line.rev { background: linear-gradient(to left, transparent, var(–border)); }
+.divider-dot {
+width: 4px; height: 4px;
+background: var(–red);
+border-radius: 50%;
+box-shadow: 0 0 8px var(–red-glow);
+flex-shrink: 0;
+}
+
+/* ── Form ── */
+.form { display: flex; flex-direction: column; gap: 1.6rem; }
+
+.field { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.label {
+font-family: var(–mono);
+font-size: 0.6rem;
+font-weight: 400;
+letter-spacing: 0.18em;
+text-transform: uppercase;
+color: var(–text-dim);
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+
+.label .optional { color: var(–text-muted); }
+.char-count { color: var(–text-muted); transition: color 0.2s; }
+.char-count.warn { color: #e88; }
+
+.input, textarea {
+width: 100%;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 3px;
+color: var(–text);
+font-family: var(–serif);
+font-size: 0.95rem;
+padding: 0.85rem 1rem;
+outline: none;
+transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+-webkit-appearance: none;
+}
+
+.input:focus, textarea:focus {
+border-color: var(–border-active);
+background: rgba(255,255,255,0.04);
+box-shadow: 0 0 0 3px rgba(200,50,50,0.07);
+}
+
+.input::placeholder, textarea::placeholder { color: #2e2e2e; }
+
+.key-wrap { position: relative; }
+.key-wrap .input { padding-right: 4rem; font-family: var(–mono); font-size: 0.8rem; }
+.toggle-key {
+position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%);
+background: none; border: none; color: #444; cursor: pointer;
+font-family: var(–mono); font-size: 0.6rem; letter-spacing: 0.08em;
+padding: 0.2rem 0.3rem;
+transition: color 0.15s;
+}
+.toggle-key:hover { color: #888; }
+
+textarea {
+resize: vertical;
+min-height: 140px;
+line-height: 1.85;
+}
+
+/* ── Voice Grid ── */
+.voices {
+display: grid;
+grid-template-columns: repeat(5, 1fr);
+gap: 0.4rem;
+}
+
+@media (max-width: 480px) {
+.voices { grid-template-columns: repeat(3, 1fr); }
+}
+
+.voice-btn {
+padding: 0.7rem 0.3rem;
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 3px;
+color: #666;
+cursor: pointer;
+font-family: var(–mono);
+font-size: 0.62rem;
+line-height: 1.5;
+text-align: center;
+transition: all 0.16s;
+}
+
+.voice-btn:hover { background: rgba(255,255,255,0.04); color: #999; }
+
+.voice-btn.active {
+background: rgba(200,50,50,0.12);
+border-color: rgba(200,50,50,0.45);
+color: #e07070;
+}
+
+.voice-name { display: block; font-weight: 500; }
+.voice-sub  { display: block; font-size: 0.55rem; opacity: 0.55; margin-top: 2px; }
+
+/* ── Generate Button ── */
+.gen-btn {
+width: 100%;
+padding: 1.05rem;
+background: var(–red);
+border: none;
+border-radius: 3px;
+color: #f5ede8;
+font-family: var(–serif);
+font-size: 1.05rem;
+font-weight: 700;
+letter-spacing: 0.06em;
+cursor: pointer;
+transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+position: relative;
+overflow: hidden;
+}
+
+.gen-btn::after {
+content: ‘’;
+position: absolute;
+inset: 0;
+background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+pointer-events: none;
+}
+
+.gen-btn:hover:not(:disabled) {
+background: #d93a3a;
+transform: translateY(-1px);
+box-shadow: 0 8px 28px rgba(200,50,50,0.35);
+}
+
+.gen-btn:active:not(:disabled) { transform: translateY(0); }
+.gen-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+.pulse { animation: pulse 1.3s ease-in-out infinite; }
+
+/* ── Status panels ── */
+.panel {
+border-radius: 3px;
+padding: 1rem 1.1rem;
+animation: slideIn 0.35s ease both;
+}
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateY(6px); }
+to   { opacity: 1; transform: translateY(0); }
+}
+
+.panel-error {
+background: rgba(200,50,50,0.08);
+border: 1px solid rgba(200,50,50,0.22);
+}
+
+.panel-error .panel-tag {
+font-family: var(–mono); font-size: 0.58rem; letter-spacing: 0.18em;
+color: #e07070; margin-bottom: 0.4rem;
+}
+
+.panel-error .panel-msg { color: #c08080; font-size: 0.88rem; line-height: 1.55; }
+
+.panel-success {
+background: rgba(255,255,255,0.02);
+border: 1px solid var(–border);
+}
+
+.panel-tag-ok {
+font-family: var(–mono); font-size: 0.58rem; letter-spacing: 0.18em;
+color: var(–text-dim); margin-bottom: 1rem;
+}
+
+audio {
+width: 100%;
+height: 34px;
+display: block;
+margin-bottom: 0.9rem;
+filter: hue-rotate(330deg) saturate(0.5) brightness(0.9);
+border-radius: 2px;
+}
+
+.dl-btn {
+width: 100%;
+padding: 0.75rem;
+background: transparent;
+border: 1px solid rgba(200,50,50,0.35);
+border-radius: 3px;
+color: #e07070;
+font-family: var(–mono);
+font-size: 0.65rem;
+letter-spacing: 0.18em;
+cursor: pointer;
+transition: background 0.18s, border-color 0.18s;
+}
+
+.dl-btn:hover {
+background: rgba(200,50,50,0.1);
+border-color: rgba(200,50,50,0.6);
+}
+
+/* ── Footer ── */
+.footer {
+text-align: center;
+margin-top: 3rem;
+font-family: var(–mono);
+font-size: 0.55rem;
+letter-spacing: 0.14em;
+color: #222;
+}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+
+  <header class="header">
+    <p class="eyebrow">Gemini TTS · 한국어 음성 합성</p>
+    <h1>한국어<br/>음성 합성</h1>
+    <p class="subtitle">Korean Text-to-Speech via Google Gemini</p>
+  </header>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-dot"></div>
+    <div class="divider-line rev"></div>
+  </div>
+
+  <div class="form">
+
+```
+<!-- API Key -->
+<div class="field">
+  <label class="label">Google API Key</label>
+  <div class="key-wrap">
+    <input id="apiKey" class="input" type="password" placeholder="AIzaSy..." autocomplete="off" />
+    <button class="toggle-key" id="toggleKey" onclick="toggleKeyVisibility()">표시</button>
+  </div>
+</div>
+
+<!-- Korean Text -->
+<div class="field">
+  <label class="label">
+    한국어 텍스트
+    <span class="char-count" id="charCount">0 자</span>
+  </label>
+  <textarea id="koreanText" placeholder="여기에 한국어 텍스트를 입력하세요..." oninput="updateCount()"></textarea>
+</div>
+
+<!-- Style Instructions -->
+<div class="field">
+  <label class="label">
+    발화 스타일 지침
+    <span class="optional">(선택사항)</span>
+  </label>
+  <input id="styleInstr" class="input" type="text" placeholder="예: 천천히 차분하게 읽어주세요, 뉴스 아나운서 스타일로, 감정적으로..." />
+</div>
+
+<!-- Voice -->
+<div class="field">
+  <label class="label">음성 선택</label>
+  <div class="voices" id="voiceGrid"></div>
+</div>
+
+<!-- Generate -->
+<button class="gen-btn" id="genBtn" onclick="generate()">음성 생성 →</button>
+
+<!-- Output area -->
+<div id="outputArea"></div>
+```
+
+  </div>
+
+  <p class="footer">API KEY IS USED LOCALLY · NEVER TRANSMITTED TO ANY SERVER EXCEPT GOOGLE</p>
+</div>
+
+<script>
+const VOICES = [
+  { id: "Kore",   kr: "코레",   sub: "Warm" },
+  { id: "Aoede",  kr: "아오에데", sub: "Bright" },
+  { id: "Charon", kr: "카론",   sub: "Deep" },
+  { id: "Fenrir", kr: "펜리르", sub: "Bold" },
+  { id: "Puck",   kr: "퍽",    sub: "Lively" },
+];
+
+let selectedVoice = "Kore";
+let audioBlob = null;
+
+// Build voice buttons
+const grid = document.getElementById("voiceGrid");
+VOICES.forEach(v => {
+  const btn = document.createElement("button");
+  btn.className = "voice-btn" + (v.id === selectedVoice ? " active" : "");
+  btn.id = "voice_" + v.id;
+  btn.innerHTML = `<span class="voice-name">${v.kr}</span><span class="voice-sub">${v.id} · ${v.sub}</span>`;
+  btn.onclick = () => selectVoice(v.id);
+  grid.appendChild(btn);
+});
+
+function selectVoice(id) {
+  document.querySelectorAll(".voice-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById("voice_" + id).classList.add("active");
+  selectedVoice = id;
+}
+
+function updateCount() {
+  const len = document.getElementById("koreanText").value.length;
+  const el = document.getElementById("charCount");
+  el.textContent = len.toLocaleString() + " 자";
+  el.classList.toggle("warn", len > 4000);
+}
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById("apiKey");
+  const btn = document.getElementById("toggleKey");
+  if (inp.type === "password") { inp.type = "text"; btn.textContent = "숨기기"; }
+  else { inp.type = "password"; btn.textContent = "표시"; }
+}
+
+function showError(msg) {
+  document.getElementById("outputArea").innerHTML = `
+    <div class="panel panel-error">
+      <div class="panel-tag">ERROR</div>
+      <div class="panel-msg">${msg}</div>
+    </div>`;
+}
+
+function showOutput(blob) {
+  const url = URL.createObjectURL(blob);
+  const voiceLabel = VOICES.find(v => v.id === selectedVoice);
+  document.getElementById("outputArea").innerHTML = `
+    <div class="panel panel-success">
+      <div class="panel-tag-ok">✓ 생성 완료 · ${voiceLabel.kr} (${voiceLabel.id})</div>
+      <audio id="player" controls src="${url}"></audio>
+      <button class="dl-btn" id="dlBtn">↓ &nbsp; DOWNLOAD .WAV</button>
+    </div>`;
+  document.getElementById("dlBtn").onclick = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "korean_tts.wav";
+    a.click();
+  };
+}
+
+function pcmToWav(base64, sampleRate=24000, channels=1, bits=16) {
+  const raw = atob(base64);
+  const pcm = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) pcm[i] = raw.charCodeAt(i);
+  const dataLen = pcm.length;
+  const buf = new ArrayBuffer(44 + dataLen);
+  const v = new DataView(buf);
+  const s = (o, str) => [...str].forEach((c,i) => v.setUint8(o+i, c.charCodeAt(0)));
+  const byteRate = sampleRate * channels * bits / 8;
+  const blockAlign = channels * bits / 8;
+  s(0,"RIFF"); v.setUint32(4, 36+dataLen, true); s(8,"WAVE");
+  s(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true);
+  v.setUint16(22,channels,true); v.setUint32(24,sampleRate,true);
+  v.setUint32(28,byteRate,true); v.setUint16(32,blockAlign,true);
+  v.setUint16(34,bits,true); s(36,"data"); v.setUint32(40,dataLen,true);
+  new Uint8Array(buf,44).set(pcm);
+  return buf;
+}
+
+async function generate() {
+  const apiKey = document.getElementById("apiKey").value.trim();
+  const text   = document.getElementById("koreanText").value.trim();
+  const style  = document.getElementById("styleInstr").value.trim();
+
+  if (!apiKey) return showError("API 키를 입력하세요.");
+  if (!text)   return showError("한국어 텍스트를 입력하세요.");
+
+  const btn = document.getElementById("genBtn");
+  btn.disabled = true;
+  btn.innerHTML = '<span class="pulse">생성 중...</span>';
+  document.getElementById("outputArea").innerHTML = "";
+
+  const prompt = style
+    ? `다음 지침에 따라 텍스트를 읽어주세요: ${style}\n\n텍스트: ${text}`
+    : text;
+
+  try {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } }
+            }
+          }
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = data?.error?.message || `HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+
+    const audioB64 = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!audioB64) throw new Error("응답에 오디오 데이터가 없습니다. 모델 또는 API 응답을 확인하세요.");
+
+    const wavBuf = pcmToWav(audioB64);
+    const blob = new Blob([wavBuf], { type: "audio/wav" });
+    showOutput(blob);
+
+  } catch (err) {
+    showError(err.message || "알 수 없는 오류가 발생했습니다.");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "음성 생성 →";
+  }
+}
+
+// Enter key on single-line inputs
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") generate();
+});
+</script>
+
+</body>
+</html>
