@@ -828,17 +828,15 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
    Gemini TTS: single chunk → Int16Array (PCM)
 ════════════════════════════════════════════ */
 async function fetchChunkAudio(apiKey, text, voiceName, stylePrompt, chunkIdx) {
-  const systemInstruction = stylePrompt
-    ? `You are a professional audiobook narrator. Read the following text in a ${stylePrompt} tone. Narrate naturally with appropriate pacing, emotion, and pauses.`
-    : 'You are a professional audiobook narrator. Read the following text naturally with appropriate pacing, emotion, and pauses.';
+  // TTS models do NOT support system_instruction — embed style directly in the prompt text
+  const styledText = stylePrompt
+    ? `Read the following passage as a professional audiobook narrator in a ${stylePrompt} tone, with natural pacing and emotion:\n\n${text}`
+    : text;
 
   const body = {
     contents: [{
-      parts: [{ text: text }]
+      parts: [{ text: styledText }]
     }],
-    system_instruction: {
-      parts: [{ text: systemInstruction }]
-    },
     generationConfig: {
       responseModalities: ['AUDIO'],
       speechConfig: {
@@ -851,13 +849,17 @@ async function fetchChunkAudio(apiKey, text, voiceName, stylePrompt, chunkIdx) {
     }
   };
 
-  const url = `${GEMINI_ENDPOINT}?key=${encodeURIComponent(apiKey)}`;
+  // Use x-goog-api-key header (required by newer Gemini API versions)
+  const url = GEMINI_ENDPOINT;
 
   log('info', `Chunk ${chunkIdx}: requesting audio (${text.length} chars)…`);
 
   const res = await fetchWithBackoff(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey
+    },
     body: JSON.stringify(body)
   });
 
