@@ -1,418 +1,1120 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webnovel Narrator</title>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
-    
-    <style>
-        :root {
-            --mint: #B5EAD7;
-            --mint-hover: #98d1bd;
-            --lilac: #E0BBE4;
-            --lilac-dark: #b892bc;
-            --bg-color: #F9F6FA;
-            --text-main: #5c4d5c;
-            --text-light: #8e7d8e;
-            --white: #ffffff;
-            --shadow: 0 8px 24px rgba(224, 187, 228, 0.4);
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>♡ dreamscript · narrate softly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Quicksand:wght@400;500;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.0/lame.min.js"></script>
+<style>
+  :root {
+    --lilac-50:  #f7f2ff;
+    --lilac-100: #ede3ff;
+    --lilac-200: #ddc8fb;
+    --lilac-300: #c8b0f0;
+    --lilac-400: #a98ad9;
+    --lilac-500: #8b6dc1;
+    --lilac-700: #5a4286;
 
-        body {
-            font-family: 'Nunito', sans-serif;
-            background-color: var(--bg-color);
-            background-image: linear-gradient(135deg, #F9F6FA 0%, #edf1f4 100%);
-            color: var(--text-main);
-            margin: 0;
-            padding: 40px 20px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
+```
+--mint-50:  #f0fbf5;
+--mint-100: #d9f3e3;
+--mint-200: #bce9d0;
+--mint-300: #9bd9b6;
+--mint-400: #74c598;
+--mint-500: #4fa97a;
 
-        .container {
-            background-color: var(--white);
-            max-width: 650px;
-            width: 100%;
-            border-radius: 20px;
-            box-shadow: var(--shadow);
-            padding: 40px;
-            box-sizing: border-box;
-        }
+--peach:    #ffd9d4;
+--butter:   #fff3c4;
+--cream:    #fdfaf3;
+--ink:      #4b3b6b;
+--ink-soft: #7a6a98;
 
-        h1 {
-            text-align: center;
-            color: var(--lilac-dark);
-            margin-top: 0;
-            font-size: 2.2em;
-            letter-spacing: 0.5px;
-        }
+--shadow-lilac: 0 12px 40px -12px rgba(168, 137, 217, 0.45);
+--shadow-mint:  0 12px 40px -12px rgba(116, 197, 152, 0.45);
+--shadow-soft:  0 6px 24px -8px rgba(74, 49, 110, 0.18);
+```
 
-        .form-group {
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-        }
+}
 
-        label {
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-main);
-            font-size: 0.95em;
-        }
+- { box-sizing: border-box; }
 
-        input[type="password"],
-        input[type="text"],
-        select,
-        textarea {
-            font-family: 'Nunito', sans-serif;
-            padding: 12px 16px;
-            border: 2px solid var(--lilac);
-            border-radius: 12px;
-            background-color: #fffbfe;
-            color: var(--text-main);
-            font-size: 1em;
-            outline: none;
-            transition: border-color 0.3s ease;
-        }
+html, body {
+margin: 0;
+padding: 0;
+min-height: 100vh;
+color: var(–ink);
+font-family: ‘Quicksand’, sans-serif;
+font-weight: 500;
+background:
+radial-gradient(circle at 12% 14%, #ffe6f4 0%, transparent 38%),
+radial-gradient(circle at 88% 22%, #d6f3e3 0%, transparent 42%),
+radial-gradient(circle at 70% 88%, #e7d9ff 0%, transparent 45%),
+linear-gradient(160deg, #faf3ff 0%, #f4fbf6 100%);
+background-attachment: fixed;
+}
 
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--mint);
-        }
+/* dreamy grain overlay */
+body::before {
+content: “”;
+position: fixed;
+inset: 0;
+pointer-events: none;
+opacity: 0.35;
+mix-blend-mode: multiply;
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.35  0 0 0 0 0.55  0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>”);
+z-index: 0;
+}
 
-        textarea {
-            resize: vertical;
-            min-height: 150px;
-            line-height: 1.5;
-        }
+/* floating sparkles */
+.sparkles {
+position: fixed;
+inset: 0;
+pointer-events: none;
+z-index: 1;
+overflow: hidden;
+}
+.sparkle {
+position: absolute;
+font-size: 14px;
+color: var(–lilac-300);
+opacity: 0.5;
+animation: drift 22s linear infinite;
+text-shadow: 0 0 8px rgba(200, 176, 240, 0.6);
+}
+.sparkle:nth-child(2) { color: var(–mint-300); animation-duration: 30s; font-size: 12px; }
+.sparkle:nth-child(3) { color: #f5b4d3;       animation-duration: 26s; font-size: 16px; }
+.sparkle:nth-child(4) { color: var(–lilac-200); animation-duration: 35s; }
+.sparkle:nth-child(5) { color: var(–mint-200); animation-duration: 28s; font-size: 18px; }
 
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+@keyframes drift {
+0%   { transform: translate(0, 100vh) rotate(0deg); }
+100% { transform: translate(20px, -10vh) rotate(360deg); }
+}
 
-        button {
-            font-family: 'Nunito', sans-serif;
-            font-weight: 700;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 1em;
-            color: var(--text-main);
-        }
+.wrap {
+position: relative;
+z-index: 2;
+max-width: 980px;
+margin: 0 auto;
+padding: 50px 28px 80px;
+}
 
-        .btn-paste {
-            background-color: var(--lilac);
-            flex: 1;
-        }
+/* header */
+header {
+text-align: center;
+margin-bottom: 44px;
+}
+.crown {
+font-family: ‘Caveat’, cursive;
+font-size: 22px;
+color: var(–lilac-400);
+letter-spacing: 1px;
+margin-bottom: 6px;
+}
+h1 {
+font-family: ‘Fraunces’, serif;
+font-weight: 400;
+font-style: italic;
+font-size: clamp(46px, 8vw, 84px);
+margin: 0;
+letter-spacing: -0.02em;
+background: linear-gradient(120deg, var(–lilac-500) 0%, var(–mint-500) 60%, #e08fb8 100%);
+-webkit-background-clip: text;
+background-clip: text;
+color: transparent;
+line-height: 1;
+}
+.tag {
+margin-top: 14px;
+font-family: ‘Fraunces’, serif;
+font-style: italic;
+font-size: 17px;
+color: var(–ink-soft);
+letter-spacing: 0.02em;
+}
+.tag::before, .tag::after {
+content: “✿”;
+color: var(–mint-300);
+margin: 0 12px;
+font-style: normal;
+}
 
-        .btn-paste:hover {
-            background-color: var(--lilac-dark);
-            color: var(--white);
-        }
+/* card style */
+.card {
+background: rgba(255, 255, 255, 0.78);
+backdrop-filter: blur(8px);
+-webkit-backdrop-filter: blur(8px);
+border: 1.5px solid rgba(221, 200, 251, 0.55);
+border-radius: 28px;
+padding: 28px 30px;
+box-shadow: var(–shadow-soft);
+margin-bottom: 22px;
+position: relative;
+}
+.card::before {
+content: “”;
+position: absolute;
+inset: 5px;
+border: 1px dashed rgba(168, 137, 217, 0.22);
+border-radius: 23px;
+pointer-events: none;
+}
 
-        .btn-generate {
-            background-color: var(--mint);
-            width: 100%;
-            font-size: 1.1em;
-            padding: 16px;
-            margin-top: 10px;
-        }
+.card h2 {
+font-family: ‘Fraunces’, serif;
+font-weight: 500;
+font-style: italic;
+font-size: 24px;
+margin: 0 0 18px;
+color: var(–lilac-700);
+display: flex;
+align-items: center;
+gap: 10px;
+}
+.card h2 .num {
+font-family: ‘Caveat’, cursive;
+font-size: 28px;
+color: var(–mint-500);
+font-style: normal;
+}
 
-        .btn-generate:hover {
-            background-color: var(--mint-hover);
-            color: var(--white);
-        }
-        
-        .btn-generate:disabled {
-            background-color: #e0e0e0;
-            cursor: not-allowed;
-            color: #999;
-        }
+/* form fields */
+label {
+display: block;
+font-family: ‘Quicksand’, sans-serif;
+font-size: 13px;
+font-weight: 600;
+text-transform: lowercase;
+letter-spacing: 0.08em;
+color: var(–ink-soft);
+margin-bottom: 8px;
+}
+label .hint {
+font-family: ‘Caveat’, cursive;
+text-transform: none;
+letter-spacing: 0;
+font-size: 16px;
+color: var(–lilac-400);
+font-weight: 400;
+margin-left: 8px;
+}
 
-        #activityLog {
-            margin-top: 25px;
-            background-color: #f5f5f5;
-            border-radius: 12px;
-            padding: 15px;
-            max-height: 150px;
-            overflow-y: auto;
-            font-size: 0.85em;
-            color: var(--text-light);
-            border: 1px dashed var(--lilac);
-        }
+input[type=“text”], input[type=“password”], select, textarea {
+width: 100%;
+background: rgba(255, 255, 255, 0.7);
+border: 1.5px solid var(–lilac-200);
+border-radius: 16px;
+padding: 13px 16px;
+font-family: ‘Quicksand’, sans-serif;
+font-size: 15px;
+font-weight: 500;
+color: var(–ink);
+transition: all 0.25s ease;
+outline: none;
+}
+input[type=“text”]:focus, input[type=“password”]:focus, select:focus, textarea:focus {
+border-color: var(–lilac-400);
+background: #fff;
+box-shadow: 0 0 0 4px rgba(168, 137, 217, 0.15);
+}
+textarea {
+resize: vertical;
+min-height: 220px;
+font-family: ‘Fraunces’, serif;
+font-size: 16px;
+line-height: 1.65;
+font-weight: 400;
+}
+select {
+appearance: none;
+-webkit-appearance: none;
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%238b6dc1' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>”);
+background-repeat: no-repeat;
+background-position: right 18px center;
+padding-right: 44px;
+cursor: pointer;
+}
 
-        .log-entry {
-            margin-bottom: 5px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
-        }
+.row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 18px;
+margin-bottom: 18px;
+}
+@media (max-width: 640px) {
+.row { grid-template-columns: 1fr; }
+}
 
-        #downloadSection {
-            margin-top: 20px;
-            text-align: center;
-            display: none;
-        }
+/* buttons */
+.btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+border: none;
+cursor: pointer;
+font-family: ‘Quicksand’, sans-serif;
+font-weight: 600;
+font-size: 14px;
+letter-spacing: 0.04em;
+padding: 11px 20px;
+border-radius: 999px;
+transition: all 0.25s cubic-bezier(.4, 0, .2, 1);
+text-decoration: none;
+}
+.btn-primary {
+background: linear-gradient(120deg, var(–lilac-300), var(–mint-300));
+color: var(–lilac-700);
+box-shadow: var(–shadow-lilac);
+padding: 16px 36px;
+font-size: 16px;
+font-weight: 700;
+}
+.btn-primary:hover {
+transform: translateY(-2px);
+box-shadow: 0 16px 44px -10px rgba(168, 137, 217, 0.6);
+}
+.btn-primary:disabled {
+background: linear-gradient(120deg, #e6dcf5, #d6e9de);
+color: #b3a6c8;
+cursor: not-allowed;
+box-shadow: none;
+transform: none;
+}
+.btn-soft {
+background: rgba(255, 255, 255, 0.85);
+color: var(–lilac-500);
+border: 1.5px solid var(–lilac-200);
+}
+.btn-soft:hover {
+background: var(–lilac-50);
+border-color: var(–lilac-300);
+color: var(–lilac-700);
+}
+.btn-mint {
+background: var(–mint-100);
+color: var(–mint-500);
+border: 1.5px solid var(–mint-200);
+}
+.btn-mint:hover {
+background: var(–mint-200);
+color: #2c7a4f;
+}
 
-        .btn-download {
-            background-color: var(--lilac-dark);
-            color: var(--white);
-            text-decoration: none;
-            padding: 12px 24px;
-            border-radius: 12px;
-            display: inline-block;
-            font-weight: bold;
-            transition: opacity 0.2s;
-        }
+/* paste row */
+.field-with-action {
+display: flex;
+gap: 10px;
+align-items: stretch;
+}
+.field-with-action input { flex: 1; }
+.field-with-action .btn { padding: 0 18px; flex-shrink: 0; }
 
-        .btn-download:hover {
-            opacity: 0.8;
-        }
-    </style>
+.text-area-wrap { position: relative; }
+.char-count {
+position: absolute;
+bottom: 12px;
+right: 16px;
+font-family: ‘Caveat’, cursive;
+font-size: 16px;
+color: var(–ink-soft);
+background: rgba(255, 255, 255, 0.85);
+padding: 2px 10px;
+border-radius: 12px;
+pointer-events: none;
+}
+
+/* style history */
+.history-list {
+display: flex;
+flex-wrap: wrap;
+gap: 8px;
+margin-top: 12px;
+}
+.history-chip {
+background: rgba(255, 255, 255, 0.75);
+border: 1.5px dashed var(–mint-200);
+border-radius: 14px;
+padding: 8px 14px;
+font-family: ‘Fraunces’, serif;
+font-style: italic;
+font-size: 14px;
+color: var(–ink);
+cursor: pointer;
+transition: all 0.2s;
+max-width: 320px;
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+position: relative;
+}
+.history-chip:hover {
+background: var(–mint-50);
+border-color: var(–mint-300);
+border-style: solid;
+transform: translateY(-1px);
+}
+.history-chip .x {
+margin-left: 8px;
+color: var(–lilac-300);
+font-weight: 700;
+opacity: 0;
+transition: opacity 0.2s;
+}
+.history-chip:hover .x { opacity: 1; }
+.history-empty {
+font-family: ‘Caveat’, cursive;
+color: var(–ink-soft);
+font-size: 16px;
+margin-top: 8px;
+}
+
+/* generate area */
+.generate-area {
+text-align: center;
+padding: 8px 0 4px;
+}
+.progress-wrap {
+margin-top: 22px;
+display: none;
+}
+.progress-wrap.active { display: block; }
+.progress-bar {
+height: 12px;
+background: var(–lilac-50);
+border-radius: 999px;
+overflow: hidden;
+border: 1.5px solid var(–lilac-100);
+box-shadow: inset 0 1px 3px rgba(74, 49, 110, 0.08);
+}
+.progress-fill {
+height: 100%;
+width: 0%;
+background: linear-gradient(90deg, var(–lilac-300), var(–mint-300), var(–lilac-300));
+background-size: 200% 100%;
+animation: shimmer 2s linear infinite;
+transition: width 0.4s ease;
+border-radius: 999px;
+}
+@keyframes shimmer {
+0%   { background-position: 200% 0; }
+100% { background-position: -200% 0; }
+}
+.progress-label {
+margin-top: 10px;
+font-family: ‘Caveat’, cursive;
+font-size: 18px;
+color: var(–lilac-500);
+}
+
+/* result area */
+.result {
+display: none;
+margin-top: 24px;
+text-align: center;
+}
+.result.active { display: block; }
+.result audio {
+width: 100%;
+max-width: 500px;
+margin: 12px 0 18px;
+border-radius: 999px;
+}
+
+/* activity log */
+.log {
+background: linear-gradient(180deg, #fbf6ff 0%, #f3fbf6 100%);
+border-radius: 18px;
+padding: 16px 18px;
+height: 220px;
+overflow-y: auto;
+font-family: ‘JetBrains Mono’, ‘Courier New’, monospace;
+font-size: 12.5px;
+line-height: 1.7;
+border: 1.5px solid var(–lilac-100);
+}
+.log-entry {
+margin-bottom: 4px;
+color: var(–ink-soft);
+}
+.log-entry .ts {
+color: var(–lilac-300);
+margin-right: 8px;
+}
+.log-entry.info { color: var(–ink); }
+.log-entry.success { color: var(–mint-500); }
+.log-entry.warn { color: #d59940; }
+.log-entry.error { color: #d57281; }
+.log::-webkit-scrollbar { width: 8px; }
+.log::-webkit-scrollbar-track { background: transparent; }
+.log::-webkit-scrollbar-thumb {
+background: var(–lilac-200);
+border-radius: 4px;
+}
+
+.toolbar {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 14px;
+}
+.toolbar h2 { margin: 0; }
+
+footer {
+text-align: center;
+margin-top: 30px;
+font-family: ‘Caveat’, cursive;
+font-size: 17px;
+color: var(–ink-soft);
+}
+footer .heart { color: #e08fb8; }
+
+/* tiny inline icons */
+.ico { width: 14px; height: 14px; stroke-width: 2; stroke: currentColor; fill: none; }
+
+/* api key visibility toggle */
+.key-row {
+display: flex;
+gap: 10px;
+align-items: stretch;
+}
+.key-row input { flex: 1; }
+.save-status {
+font-family: ‘Caveat’, cursive;
+font-size: 16px;
+color: var(–mint-500);
+margin-top: 8px;
+opacity: 0;
+transition: opacity 0.4s;
+}
+.save-status.show { opacity: 1; }
+
+.style-tip {
+margin-top: 6px;
+font-family: ‘Fraunces’, serif;
+font-style: italic;
+font-size: 13.5px;
+color: var(–ink-soft);
+line-height: 1.5;
+}
+</style>
+
 </head>
 <body>
 
-<div class="container">
-    <h1>✨ Storyteller ✨</h1>
+<div class="sparkles">
+  <div class="sparkle" style="left:5%;  animation-delay:0s;">✦</div>
+  <div class="sparkle" style="left:18%; animation-delay:5s;">✿</div>
+  <div class="sparkle" style="left:32%; animation-delay:11s;">❀</div>
+  <div class="sparkle" style="left:50%; animation-delay:2s;">✦</div>
+  <div class="sparkle" style="left:65%; animation-delay:14s;">♡</div>
+  <div class="sparkle" style="left:78%; animation-delay:7s;">✿</div>
+  <div class="sparkle" style="left:90%; animation-delay:18s;">❀</div>
+</div>
 
-    <div class="form-group">
-        <label for="apiKey">Gemini API Key</label>
-        <input type="password" id="apiKey" placeholder="Enter your API key (saved locally)">
+<div class="wrap">
+
+  <header>
+    <div class="crown">·୨୧· a soft little tts ·୨୧·</div>
+    <h1>dreamscript</h1>
+    <p class="tag">narrate your stories in gentle, downloadable voices</p>
+  </header>
+
+  <!-- API Key -->
+
+  <section class="card">
+    <h2><span class="num">i.</span> your secret key</h2>
+    <label for="apiKey">gemini api key <span class="hint">~ stored softly in your browser only</span></label>
+    <div class="key-row">
+      <input type="password" id="apiKey" placeholder="paste your key here…" autocomplete="off" spellcheck="false" />
+      <button class="btn btn-soft" id="toggleKey" type="button" title="show/hide">
+        <svg class="ico" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button class="btn btn-mint" id="saveKey" type="button">save</button>
     </div>
+    <div class="save-status" id="saveStatus">✿ saved!</div>
+  </section>
 
-    <div class="form-group">
-        <label for="voiceSelect">Narrator Voice</label>
-        <select id="voiceSelect">
-            <option value="voice-1">Aoife (Soft & Ethereal)</option>
-            <option value="voice-2">Puck (Warm & Playful)</option>
-            <option value="voice-3">Oberon (Deep & Resonant)</option>
+  <!-- Voice + Style -->
+
+  <section class="card">
+    <h2><span class="num">ii.</span> choose a voice & mood</h2>
+    <div class="row">
+      <div>
+        <label for="voice">voice</label>
+        <select id="voice"></select>
+      </div>
+      <div>
+        <label for="model">model</label>
+        <select id="model">
+          <option value="gemini-2.5-flash-preview-tts">gemini 2.5 flash (faster)</option>
+          <option value="gemini-2.5-pro-preview-tts">gemini 2.5 pro (richer)</option>
         </select>
+      </div>
     </div>
 
-    <div class="form-group">
-        <label for="emotionInput">Emotion & Style Instructions</label>
-        <input type="text" id="emotionInput" placeholder="e.g., Read slowly with a melancholic, gentle tone...">
-    </div>
+```
+<label for="style">style / emotion direction <span class="hint">~ how should it feel?</span></label>
+<div class="field-with-action">
+  <input type="text" id="style" placeholder="e.g. read in a soft, dreamy whisper, slightly melancholic" />
+  <button class="btn btn-soft" id="saveStyle" type="button">+ save</button>
+</div>
+<p class="style-tip">tip: try things like <em>"warm storyteller voice, slow pace"</em> or <em>"breathy and intimate, like a midnight diary entry"</em></p>
 
-    <div class="form-group">
-        <label for="textInput">Story Text</label>
-        <div class="button-group">
-            <button class="btn-paste" id="pasteBtn">📋 Paste from Clipboard</button>
-        </div>
-        <textarea id="textInput" placeholder="Once upon a time..."></textarea>
-    </div>
+<div style="margin-top:18px;">
+  <label>style history <span class="hint">~ tap to use again</span></label>
+  <div class="history-list" id="historyList"></div>
+</div>
+```
 
-    <button class="btn-generate" id="generateBtn">✨ Generate Audio ✨</button>
+  </section>
 
-    <div id="activityLog">
-        <div class="log-entry">Waiting for input...</div>
-    </div>
+  <!-- Text -->
 
-    <div id="downloadSection">
-        <a id="downloadLink" class="btn-download" download="webnovel_narration.mp3">⬇️ Download MP3</a>
+  <section class="card">
+    <div class="toolbar">
+      <h2><span class="num">iii.</span> the text</h2>
+      <button class="btn btn-soft" id="pasteBtn" type="button">
+        <svg class="ico" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+        paste
+      </button>
     </div>
+    <div class="text-area-wrap">
+      <textarea id="text" placeholder="paste your webnovel chapter, poem, or any text you'd like read aloud…"></textarea>
+      <div class="char-count" id="charCount">0 chars · 0 chunks</div>
+    </div>
+  </section>
+
+  <!-- Generate -->
+
+  <section class="card generate-area">
+    <button class="btn btn-primary" id="generateBtn" type="button">
+      ✨ narrate &amp; download mp3
+    </button>
+
+```
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel">preparing…</div>
+</div>
+
+<div class="result" id="result">
+  <audio id="audioPlayer" controls></audio>
+  <div>
+    <a class="btn btn-primary" id="downloadLink" download="dreamscript-narration.mp3" style="padding: 12px 28px; font-size: 14px;">
+      ↓ download mp3
+    </a>
+  </div>
+</div>
+```
+
+  </section>
+
+  <!-- Activity Log -->
+
+  <section class="card">
+    <div class="toolbar">
+      <h2><span class="num">iv.</span> activity log</h2>
+      <button class="btn btn-soft" id="clearLog" type="button">clear</button>
+    </div>
+    <div class="log" id="log"></div>
+  </section>
+
+  <footer>
+    made with <span class="heart">♡</span> · whispered through gemini · encoded by lamejs
+  </footer>
+
 </div>
 
 <script>
-    // --- UI Elements ---
-    const apiKeyInput = document.getElementById('apiKey');
-    const voiceSelect = document.getElementById('voiceSelect');
-    const emotionInput = document.getElementById('emotionInput');
-    const textInput = document.getElementById('textInput');
-    const pasteBtn = document.getElementById('pasteBtn');
-    const generateBtn = document.getElementById('generateBtn');
-    const activityLog = document.getElementById('activityLog');
-    const downloadSection = document.getElementById('downloadSection');
-    const downloadLink = document.getElementById('downloadLink');
+/* ==================================================================== */
+/*  ✿ dreamscript ✿  — soft tumblr tts                                  */
+/* ==================================================================== */
 
-    // --- Initialization & LocalStorage ---
-    window.onload = () => {
-        const savedKey = localStorage.getItem('gemini_tts_api_key');
-        if (savedKey) apiKeyInput.value = savedKey;
-    };
+const VOICES = [
+  { id: "Zephyr",        desc: "bright" },
+  { id: "Puck",          desc: "upbeat" },
+  { id: "Charon",        desc: "informative" },
+  { id: "Kore",          desc: "firm" },
+  { id: "Fenrir",        desc: "excitable" },
+  { id: "Leda",          desc: "youthful" },
+  { id: "Orus",          desc: "firm" },
+  { id: "Aoede",         desc: "breezy" },
+  { id: "Callirrhoe",    desc: "easy-going" },
+  { id: "Autonoe",       desc: "bright" },
+  { id: "Enceladus",     desc: "breathy" },
+  { id: "Iapetus",       desc: "clear" },
+  { id: "Umbriel",       desc: "easy-going" },
+  { id: "Algieba",       desc: "smooth" },
+  { id: "Despina",       desc: "smooth" },
+  { id: "Erinome",       desc: "clear" },
+  { id: "Algenib",       desc: "gravelly" },
+  { id: "Rasalgethi",    desc: "informative" },
+  { id: "Laomedeia",     desc: "upbeat" },
+  { id: "Achernar",      desc: "soft" },
+  { id: "Alnilam",       desc: "firm" },
+  { id: "Schedar",       desc: "even" },
+  { id: "Gacrux",        desc: "mature" },
+  { id: "Pulcherrima",   desc: "forward" },
+  { id: "Achird",        desc: "friendly" },
+  { id: "Zubenelgenubi", desc: "casual" },
+  { id: "Vindemiatrix",  desc: "gentle" },
+  { id: "Sadachbia",     desc: "lively" },
+  { id: "Sadaltager",    desc: "knowledgeable" },
+  { id: "Sulafat",       desc: "warm" }
+];
 
-    apiKeyInput.addEventListener('change', () => {
-        localStorage.setItem('gemini_tts_api_key', apiKeyInput.value.trim());
+const STORE_KEYS = {
+  apiKey:    "dreamscript:apiKey",
+  voice:     "dreamscript:voice",
+  model:     "dreamscript:model",
+  style:     "dreamscript:style",
+  history:   "dreamscript:styleHistory"
+};
+
+const CHUNK_TARGET = 800;     // chars per chunk
+const MAX_RETRIES  = 5;
+const SAMPLE_RATE  = 24000;   // gemini tts returns 24kHz pcm
+
+/* ---------- safe storage (falls back to memory) ---------- */
+const memStore = {};
+const storage = {
+  get(key) {
+    try { return localStorage.getItem(key); }
+    catch { return memStore[key] ?? null; }
+  },
+  set(key, val) {
+    try { localStorage.setItem(key, val); }
+    catch { memStore[key] = val; }
+  },
+  del(key) {
+    try { localStorage.removeItem(key); }
+    catch { delete memStore[key]; }
+  }
+};
+
+/* ---------- DOM refs ---------- */
+const $ = (id) => document.getElementById(id);
+const apiKeyInput   = $("apiKey");
+const voiceSelect   = $("voice");
+const modelSelect   = $("model");
+const styleInput    = $("style");
+const textArea      = $("text");
+const charCount     = $("charCount");
+const historyList   = $("historyList");
+const generateBtn   = $("generateBtn");
+const progressWrap  = $("progressWrap");
+const progressFill  = $("progressFill");
+const progressLabel = $("progressLabel");
+const resultBox     = $("result");
+const audioPlayer   = $("audioPlayer");
+const downloadLink  = $("downloadLink");
+const logBox        = $("log");
+const saveStatus    = $("saveStatus");
+
+/* ---------- logging ---------- */
+function log(msg, level = "info") {
+  const entry = document.createElement("div");
+  entry.className = "log-entry " + level;
+  const now = new Date();
+  const ts  = now.toTimeString().slice(0, 8);
+  entry.innerHTML = `<span class="ts">${ts}</span>${msg}`;
+  logBox.appendChild(entry);
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+/* ---------- voice list ---------- */
+function populateVoices() {
+  voiceSelect.innerHTML = "";
+  for (const v of VOICES) {
+    const opt = document.createElement("option");
+    opt.value = v.id;
+    opt.textContent = `${v.id} — ${v.desc}`;
+    voiceSelect.appendChild(opt);
+  }
+}
+
+/* ---------- style history ---------- */
+function getHistory() {
+  try { return JSON.parse(storage.get(STORE_KEYS.history) || "[]"); }
+  catch { return []; }
+}
+function saveHistory(arr) {
+  storage.set(STORE_KEYS.history, JSON.stringify(arr.slice(0, 20)));
+}
+function renderHistory() {
+  const arr = getHistory();
+  historyList.innerHTML = "";
+  if (arr.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "history-empty";
+    empty.textContent = "no saved styles yet ~ save one above ✿";
+    historyList.appendChild(empty);
+    return;
+  }
+  arr.forEach((style, idx) => {
+    const chip = document.createElement("div");
+    chip.className = "history-chip";
+    chip.title = "click to use · shift-click to delete";
+    chip.innerHTML = `"${escapeHtml(style)}"<span class="x">×</span>`;
+    chip.addEventListener("click", (e) => {
+      if (e.shiftKey || e.target.classList.contains("x")) {
+        const next = arr.filter((_, i) => i !== idx);
+        saveHistory(next);
+        renderHistory();
+        log(`deleted style preset`, "warn");
+      } else {
+        styleInput.value = style;
+        styleInput.focus();
+        log(`loaded style: "${truncate(style, 40)}"`, "info");
+      }
     });
+    historyList.appendChild(chip);
+  });
+}
+function addToHistory(style) {
+  if (!style.trim()) return;
+  const arr = getHistory();
+  const filtered = arr.filter(s => s !== style);
+  filtered.unshift(style);
+  saveHistory(filtered);
+  renderHistory();
+}
 
-    // --- Utility: Activity Logger ---
-    function logMessage(msg) {
-        const entry = document.createElement('div');
-        entry.className = 'log-entry';
-        const time = new Date().toLocaleTimeString();
-        entry.textContent = `[${time}] ${msg}`;
-        activityLog.appendChild(entry);
-        activityLog.scrollTop = activityLog.scrollHeight;
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+function truncate(s, n) {
+  return s.length > n ? s.slice(0, n) + "…" : s;
+}
+
+/* ---------- text chunking ---------- */
+function chunkText(text, target = CHUNK_TARGET) {
+  text = text.trim().replace(/\r\n/g, "\n");
+  if (text.length <= target) return [text];
+
+  const chunks = [];
+  let i = 0;
+  while (i < text.length) {
+    let end = Math.min(i + target, text.length);
+    if (end < text.length) {
+      // try to find a sentence end within the last 200 chars of window
+      const window = text.slice(i, end);
+      const searchStart = Math.max(0, window.length - 250);
+      const slice = window.slice(searchStart);
+
+      const sentenceMatch = slice.match(/.*[.!?…"”'’\)\]][\s\n]/g);
+      if (sentenceMatch) {
+        const last = sentenceMatch[sentenceMatch.length - 1];
+        const idx = slice.lastIndexOf(last) + last.length;
+        end = i + searchStart + idx;
+      } else {
+        // fall back to newline
+        const nlIdx = window.lastIndexOf("\n");
+        if (nlIdx > target * 0.5) {
+          end = i + nlIdx + 1;
+        } else {
+          // fall back to last comma
+          const commaIdx = window.lastIndexOf(", ");
+          if (commaIdx > target * 0.5) {
+            end = i + commaIdx + 2;
+          } else {
+            // fall back to last space
+            const spIdx = window.lastIndexOf(" ");
+            if (spIdx > target * 0.5) end = i + spIdx + 1;
+          }
+        }
+      }
+    }
+    const chunk = text.slice(i, end).trim();
+    if (chunk) chunks.push(chunk);
+    i = end;
+  }
+  return chunks;
+}
+
+/* ---------- char counter ---------- */
+function updateCharCount() {
+  const t = textArea.value;
+  const chunks = t.trim() ? chunkText(t) : [];
+  charCount.textContent = `${t.length.toLocaleString()} chars · ${chunks.length} chunk${chunks.length === 1 ? "" : "s"}`;
+}
+
+/* ---------- base64 → Int16Array PCM ---------- */
+function base64ToInt16(base64) {
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+  // pcm16 little-endian
+  return new Int16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
+}
+
+/* ---------- concatenate Int16Arrays ---------- */
+function concatInt16(arrays) {
+  let total = 0;
+  for (const a of arrays) total += a.length;
+  const out = new Int16Array(total);
+  let off = 0;
+  for (const a of arrays) {
+    out.set(a, off);
+    off += a.length;
+  }
+  return out;
+}
+
+/* ---------- PCM → MP3 (lamejs) ---------- */
+function pcmToMp3(pcm, sampleRate = SAMPLE_RATE, kbps = 128) {
+  if (typeof lamejs === "undefined") {
+    throw new Error("lamejs failed to load from CDN");
+  }
+  const encoder = new lamejs.Mp3Encoder(1, sampleRate, kbps);
+  const blockSize = 1152;
+  const mp3Chunks = [];
+  for (let i = 0; i < pcm.length; i += blockSize) {
+    const chunk = pcm.subarray(i, i + blockSize);
+    const buf = encoder.encodeBuffer(chunk);
+    if (buf.length > 0) mp3Chunks.push(buf);
+  }
+  const flush = encoder.flush();
+  if (flush.length > 0) mp3Chunks.push(flush);
+  return new Blob(mp3Chunks, { type: "audio/mpeg" });
+}
+
+/* ---------- gemini fetch with exponential backoff ---------- */
+async function fetchTtsChunk({ text, style, voice, model, apiKey }) {
+  const prompt = style.trim()
+    ? `${style.trim()}: ${text}`
+    : text;
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseModalities: ["AUDIO"],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: { voiceName: voice }
+        }
+      }
+    }
+  };
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+
+  let lastErr;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (res.status === 429 || res.status >= 500) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 30000) + Math.random() * 500;
+        log(`server says ${res.status}, retrying in ${(delay/1000).toFixed(1)}s…`, "warn");
+        await sleep(delay);
+        continue;
+      }
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`);
+      }
+
+      const data = await res.json();
+      const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+      if (!part) {
+        throw new Error("response had no audio data");
+      }
+      return base64ToInt16(part.inlineData.data);
+
+    } catch (err) {
+      lastErr = err;
+      const isNet = err.name === "TypeError" || /network|fetch/i.test(err.message);
+      if (!isNet && attempt > 0) throw err;
+      const delay = Math.min(1000 * Math.pow(2, attempt), 30000) + Math.random() * 500;
+      log(`network hiccup (${err.message}) — retrying in ${(delay/1000).toFixed(1)}s…`, "warn");
+      await sleep(delay);
+    }
+  }
+  throw lastErr || new Error("max retries exceeded");
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+/* ---------- main pipeline ---------- */
+async function generate() {
+  const apiKey = apiKeyInput.value.trim();
+  const text = textArea.value.trim();
+  const style = styleInput.value;
+  const voice = voiceSelect.value;
+  const model = modelSelect.value;
+
+  if (!apiKey) {
+    log("you'll need to add your gemini api key first ✿", "error");
+    apiKeyInput.focus();
+    return;
+  }
+  if (!text) {
+    log("the text box is empty — paste something to narrate ✿", "error");
+    textArea.focus();
+    return;
+  }
+
+  generateBtn.disabled = true;
+  resultBox.classList.remove("active");
+  progressWrap.classList.add("active");
+  progressFill.style.width = "0%";
+  progressLabel.textContent = "preparing chunks…";
+
+  // remember settings
+  storage.set(STORE_KEYS.voice, voice);
+  storage.set(STORE_KEYS.model, model);
+  storage.set(STORE_KEYS.style, style);
+
+  const chunks = chunkText(text);
+  log(`split text into ${chunks.length} chunk${chunks.length === 1 ? "" : "s"} (~${CHUNK_TARGET} chars each)`, "info");
+  log(`using voice: ${voice} · model: ${model}`, "info");
+  if (style.trim()) log(`style: "${truncate(style.trim(), 80)}"`, "info");
+
+  const pcmParts = [];
+  const t0 = performance.now();
+
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      const n = i + 1;
+      progressLabel.textContent = `narrating chunk ${n} of ${chunks.length}…`;
+      log(`▸ chunk ${n}/${chunks.length} (${chunks[i].length} chars)`, "info");
+
+      const pcm = await fetchTtsChunk({
+        text: chunks[i],
+        style, voice, model, apiKey
+      });
+
+      pcmParts.push(pcm);
+      const pct = (n / chunks.length) * 100;
+      progressFill.style.width = pct.toFixed(1) + "%";
+      log(`  ✓ received ${(pcm.byteLength / 1024).toFixed(1)} KB of pcm`, "success");
+
+      // tiny pause between chunks to be polite
+      if (i < chunks.length - 1) await sleep(150);
     }
 
-    // --- Feature: Clipboard Paste ---
-    pasteBtn.addEventListener('click', async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            textInput.value = text;
-            logMessage("Text pasted from clipboard.");
-        } catch (err) {
-            logMessage("Failed to read clipboard. Permissions missing?");
-        }
-    });
+    progressLabel.textContent = "stitching audio…";
+    const fullPcm = concatInt16(pcmParts);
+    const seconds = fullPcm.length / SAMPLE_RATE;
+    log(`stitched ${pcmParts.length} pcm parts → ${seconds.toFixed(1)}s of audio`, "success");
 
-    // --- Core Feature: Intelligent Chunking ---
-    // Splits by punctuation to avoid cutting words/sentences, max ~800 chars.
-    function chunkText(text, maxLength = 800) {
-        const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
-        const chunks = [];
-        let currentChunk = "";
+    progressLabel.textContent = "encoding mp3…";
+    log("encoding to mp3 with lamejs…", "info");
+    const mp3Blob = pcmToMp3(fullPcm);
+    const url = URL.createObjectURL(mp3Blob);
 
-        for (let sentence of sentences) {
-            if ((currentChunk.length + sentence.length) > maxLength) {
-                if (currentChunk) chunks.push(currentChunk.trim());
-                currentChunk = sentence;
-            } else {
-                currentChunk += " " + sentence;
-            }
-        }
-        if (currentChunk.trim()) chunks.push(currentChunk.trim());
-        return chunks.length ? chunks : [text];
+    audioPlayer.src = url;
+    downloadLink.href = url;
+    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+    downloadLink.download = `dreamscript-${voice.toLowerCase()}-${stamp}.mp3`;
+
+    resultBox.classList.add("active");
+    progressLabel.textContent = "all done ✿";
+    progressFill.style.width = "100%";
+
+    const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+    log(`✿ done in ${elapsed}s · mp3 size: ${(mp3Blob.size / 1024).toFixed(1)} KB`, "success");
+
+  } catch (err) {
+    log(`✗ ${err.message}`, "error");
+    progressLabel.textContent = "something went wrong ✿";
+  } finally {
+    generateBtn.disabled = false;
+  }
+}
+
+/* ---------- event wiring ---------- */
+function init() {
+  populateVoices();
+
+  // restore prefs
+  apiKeyInput.value = storage.get(STORE_KEYS.apiKey) || "";
+  const savedVoice  = storage.get(STORE_KEYS.voice);
+  const savedModel  = storage.get(STORE_KEYS.model);
+  const savedStyle  = storage.get(STORE_KEYS.style);
+  if (savedVoice && VOICES.find(v => v.id === savedVoice)) voiceSelect.value = savedVoice;
+  else voiceSelect.value = "Sulafat"; // warm default
+  if (savedModel) modelSelect.value = savedModel;
+  if (savedStyle) styleInput.value = savedStyle;
+
+  renderHistory();
+  updateCharCount();
+
+  // text events
+  textArea.addEventListener("input", updateCharCount);
+
+  // paste
+  $("pasteBtn").addEventListener("click", async () => {
+    try {
+      const t = await navigator.clipboard.readText();
+      if (t) {
+        textArea.value = t;
+        updateCharCount();
+        log(`pasted ${t.length.toLocaleString()} chars from clipboard ✿`, "success");
+      } else {
+        log("clipboard was empty", "warn");
+      }
+    } catch (err) {
+      log(`couldn't read clipboard: ${err.message}`, "error");
     }
+  });
 
-    // --- Core Feature: Exponential Backoff Fetch ---
-    async function fetchWithBackoff(url, options, maxRetries = 4, baseDelayMs = 1000) {
-        for (let attempt = 0; attempt < maxRetries; attempt++) {
-            try {
-                const response = await fetch(url, options);
-                if (!response.ok) {
-                    if (response.status === 429 || response.status >= 500) {
-                        throw new Error(`HTTP ${response.status}`);
-                    }
-                    // For 400s (bad request), don't retry, just fail out.
-                    throw new Error(`Fatal API Error: ${response.status}`);
-                }
-                return response;
-            } catch (error) {
-                if (attempt === maxRetries - 1) throw error;
-                const delay = baseDelayMs * Math.pow(2, attempt);
-                logMessage(`Fetch failed (${error.message}). Retrying in ${delay}ms...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
-        }
-    }
+  // api key save
+  $("saveKey").addEventListener("click", () => {
+    storage.set(STORE_KEYS.apiKey, apiKeyInput.value.trim());
+    saveStatus.classList.add("show");
+    log("api key saved to local storage ✿", "success");
+    setTimeout(() => saveStatus.classList.remove("show"), 1800);
+  });
 
-    // --- Core Feature: API Interaction ---
-    async function generateAudioChunk(chunkText, apiKey, voice, emotion) {
-        // NOTE: Replace this URL with the actual Gemini TTS API endpoint you are using.
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateTextToSpeech?key=${apiKey}`;
+  // toggle key visibility
+  $("toggleKey").addEventListener("click", () => {
+    apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
+  });
 
-        const payload = {
-            text: chunkText,
-            voice: voice,
-            instructions: emotion,
-            outputFormat: "RAW_PCM" // Assuming API accepts this flag
-        };
+  // save style preset
+  $("saveStyle").addEventListener("click", () => {
+    const s = styleInput.value.trim();
+    if (!s) { log("style is empty — write something first ✿", "warn"); return; }
+    addToHistory(s);
+    log(`saved style preset: "${truncate(s, 40)}"`, "success");
+  });
 
-        const response = await fetchWithBackoff(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
+  // generate
+  generateBtn.addEventListener("click", generate);
 
-        /* * NOTE ON API RESPONSE: 
-         * If the API returns a direct binary stream of raw PCM:
-         * const arrayBuffer = await response.arrayBuffer();
-         * return new Int16Array(arrayBuffer);
-         * * If the API returns JSON with Base64 encoded audio (common for Google APIs):
-         * const json = await response.json();
-         * const binaryString = window.atob(json.audioContent);
-         * const len = binaryString.length;
-         * const bytes = new Uint8Array(len);
-         * for (let i = 0; i < len; i++) { bytes[i] = binaryString.charCodeAt(i); }
-         * return new Int16Array(bytes.buffer);
-         */
+  // clear log
+  $("clearLog").addEventListener("click", () => {
+    logBox.innerHTML = "";
+    log("log cleared ✿", "info");
+  });
 
-        // Assuming direct ArrayBuffer return for RAW PCM as requested
-        const arrayBuffer = await response.arrayBuffer();
-        return new Int16Array(arrayBuffer); 
-    }
+  // greeting
+  log("dreamscript loaded · ready when you are ✿", "success");
+  if (typeof lamejs === "undefined") {
+    log("⚠ lamejs didn't load from cdn — mp3 encoding will fail", "error");
+  } else {
+    log("lamejs loaded · mp3 encoder ready", "info");
+  }
+}
 
-    // --- Core Feature: Encoding to MP3 ---
-    function encodeToMP3(pcmArrays) {
-        // lamejs setup: 1 channel (mono), 44100 sample rate, 128 kbps
-        // Adjust sample rate (44100, 24000, 16000) based on actual API specs!
-        const mp3encoder = new lamejs.Mp3Encoder(1, 44100, 128);
-        const mp3Data = [];
-
-        logMessage("Encoding stitched PCM data to MP3...");
-
-        for (let i = 0; i < pcmArrays.length; i++) {
-            const chunk = pcmArrays[i];
-            const mp3buf = mp3encoder.encodeBuffer(chunk);
-            if (mp3buf.length > 0) {
-                mp3Data.push(new Int8Array(mp3buf));
-            }
-        }
-
-        const finalBuffer = mp3encoder.flush();
-        if (finalBuffer.length > 0) {
-            mp3Data.push(new Int8Array(finalBuffer));
-        }
-
-        return new Blob(mp3Data, { type: 'audio/mp3' });
-    }
-
-    // --- Main Execution Loop ---
-    generateBtn.addEventListener('click', async () => {
-        const apiKey = apiKeyInput.value.trim();
-        const text = textInput.value.trim();
-        const voice = voiceSelect.value;
-        const emotion = emotionInput.value.trim();
-
-        if (!apiKey) return alert("Please enter your API key.");
-        if (!text) return alert("Please enter some text to narrate.");
-
-        // UI Reset
-        generateBtn.disabled = true;
-        downloadSection.style.display = 'none';
-        activityLog.innerHTML = '';
-        logMessage("Starting generation process...");
-
-        try {
-            const chunks = chunkText(text, 800);
-            logMessage(`Text chunked into ${chunks.length} segment(s).`);
-
-            const pcmArrays = [];
-
-            // Sequential fetch loop
-            for (let i = 0; i < chunks.length; i++) {
-                logMessage(`Fetching audio for chunk ${i + 1}/${chunks.length}...`);
-                const pcmData = await generateAudioChunk(chunks[i], apiKey, voice, emotion);
-                pcmArrays.push(pcmData);
-                logMessage(`Chunk ${i + 1} retrieved successfully.`);
-            }
-
-            logMessage("All chunks fetched. Stitching audio...");
-            
-            // Encode stitched PCM arrays to MP3 Blob
-            const mp3Blob = encodeToMP3(pcmArrays);
-            
-            // Create download link
-            const url = URL.createObjectURL(mp3Blob);
-            downloadLink.href = url;
-            downloadSection.style.display = 'block';
-            
-            logMessage("✅ MP3 ready for download!");
-
-        } catch (error) {
-            console.error(error);
-            logMessage(`❌ Error: ${error.message}`);
-        } finally {
-            generateBtn.disabled = false;
-        }
-    });
-
+document.addEventListener("DOMContentLoaded", init);
 </script>
+
 </body>
 </html>
