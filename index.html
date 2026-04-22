@@ -1,1019 +1,452 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>K-Novel Narrator ✦</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Gowun+Dodum&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
-<style>
-  :root {
-    --cream:      #fdf6ef;
-    --blush:      #f5ddd8;
-    --rose:       #e8b4b0;
-    --dusty:      #c98d8a;
-    --mauve:      #9b6b78;
-    --lavender:   #d5c8e8;
-    --soft-lav:   #ede8f5;
-    --ink:        #3d2b35;
-    --muted:      #7a6070;
-    --white:      #fffcfa;
-    --shadow:     rgba(155, 107, 120, 0.15);
-    --shadow-md:  rgba(155, 107, 120, 0.25);
-  }
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-background: var(–cream);
-color: var(–ink);
-font-family: ‘Gowun Dodum’, sans-serif;
-min-height: 100vh;
-overflow-x: hidden;
-position: relative;
-}
-
-/* ── Decorative background ── */
-body::before {
-content: ‘’;
-position: fixed;
-inset: 0;
-background:
-radial-gradient(ellipse 60% 50% at 10% 20%, rgba(213,200,232,0.35) 0%, transparent 60%),
-radial-gradient(ellipse 50% 60% at 90% 80%, rgba(245,221,216,0.45) 0%, transparent 55%),
-radial-gradient(ellipse 40% 40% at 50% 50%, rgba(253,246,239,0) 0%, var(–cream) 100%);
-pointer-events: none;
-z-index: 0;
-}
-
-.petal {
-position: fixed;
-pointer-events: none;
-z-index: 0;
-opacity: 0.18;
-font-size: clamp(12px, 2vw, 22px);
-animation: drift linear infinite;
-}
-
-@keyframes drift {
-0%   { transform: translateY(-60px) rotate(0deg); opacity: 0; }
-10%  { opacity: 0.18; }
-90%  { opacity: 0.12; }
-100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
-}
-
-/* ── Layout ── */
-.wrapper {
-position: relative;
-z-index: 1;
-max-width: 780px;
-margin: 0 auto;
-padding: 48px 24px 80px;
-}
-
-/* ── Header ── */
-.header {
-text-align: center;
-margin-bottom: 42px;
-animation: fadeUp 0.7s ease both;
-}
-
-.header-eyebrow {
-font-family: ‘Gowun Dodum’, sans-serif;
-font-size: 11px;
-letter-spacing: 0.3em;
-text-transform: uppercase;
-color: var(–dusty);
-margin-bottom: 10px;
-}
-
-.header h1 {
-font-family: ‘DM Serif Display’, serif;
-font-size: clamp(32px, 6vw, 52px);
-font-weight: 400;
-color: var(–ink);
-line-height: 1.1;
-letter-spacing: -0.02em;
-}
-
-.header h1 em {
-font-style: italic;
-color: var(–mauve);
-}
-
-.header-sub {
-margin-top: 10px;
-font-size: 13px;
-color: var(–muted);
-letter-spacing: 0.04em;
-}
-
-.divider {
-display: flex;
-align-items: center;
-gap: 10px;
-margin: 18px auto 0;
-max-width: 200px;
-color: var(–rose);
-font-size: 13px;
-}
-.divider::before, .divider::after {
-content: ‘’;
-flex: 1;
-height: 1px;
-background: var(–rose);
-opacity: 0.6;
-}
-
-/* ── Cards ── */
-.card {
-background: var(–white);
-border-radius: 20px;
-padding: 28px 30px;
-box-shadow: 0 4px 24px var(–shadow), 0 1px 4px rgba(0,0,0,0.04);
-margin-bottom: 20px;
-animation: fadeUp 0.6s ease both;
-border: 1px solid rgba(232, 180, 176, 0.2);
-transition: box-shadow 0.3s ease;
-}
-
-.card:hover { box-shadow: 0 8px 36px var(–shadow-md), 0 1px 4px rgba(0,0,0,0.05); }
-
-.card-label {
-font-size: 10.5px;
-letter-spacing: 0.22em;
-text-transform: uppercase;
-color: var(–dusty);
-font-family: ‘Gowun Dodum’, sans-serif;
-margin-bottom: 12px;
-display: flex;
-align-items: center;
-gap: 7px;
-}
-.card-label::after {
-content: ‘’;
-flex: 1;
-height: 1px;
-background: var(–blush);
-}
-
-/* ── API Key field ── */
-.api-row {
-display: flex;
-gap: 10px;
-align-items: center;
-}
-
-input[type=“password”], input[type=“text”], textarea, select {
-width: 100%;
-background: var(–cream);
-border: 1.5px solid var(–blush);
-border-radius: 12px;
-padding: 11px 16px;
-font-family: ‘Gowun Dodum’, sans-serif;
-font-size: 14px;
-color: var(–ink);
-outline: none;
-transition: border-color 0.25s, box-shadow 0.25s;
-resize: none;
-}
-
-input[type=“password”]:focus,
-input[type=“text”]:focus,
-textarea:focus,
-select:focus {
-border-color: var(–rose);
-box-shadow: 0 0 0 3px rgba(232,180,176,0.2);
-}
-
-select {
-cursor: pointer;
-appearance: none;
-background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ viewBox=‘0 0 12 8’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%23c98d8a’ stroke-width=‘1.5’ fill=‘none’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
-background-repeat: no-repeat;
-background-position: right 14px center;
-padding-right: 36px;
-}
-
-/* ── Text area ── */
-.text-area-wrapper { position: relative; }
-
-textarea {
-min-height: 200px;
-line-height: 1.75;
-font-size: 14px;
-letter-spacing: 0.01em;
-}
-
-.char-count {
-position: absolute;
-bottom: 10px;
-right: 14px;
-font-size: 11px;
-color: var(–muted);
-opacity: 0.7;
-pointer-events: none;
-}
-
-/* ── Row layouts ── */
-.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-@media (max-width: 540px) { .two-col { grid-template-columns: 1fr; } }
-
-/* ── Buttons ── */
-.btn {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-gap: 7px;
-border: none;
-border-radius: 50px;
-font-family: ‘Gowun Dodum’, sans-serif;
-font-size: 13px;
-letter-spacing: 0.05em;
-cursor: pointer;
-transition: all 0.22s ease;
-white-space: nowrap;
-font-weight: 400;
-}
-
-.btn-primary {
-background: linear-gradient(135deg, var(–rose) 0%, var(–dusty) 100%);
-color: #fff;
-padding: 13px 32px;
-font-size: 14px;
-box-shadow: 0 4px 18px rgba(201,141,138,0.4);
-}
-.btn-primary:hover:not(:disabled) {
-transform: translateY(-2px);
-box-shadow: 0 8px 28px rgba(201,141,138,0.5);
-}
-.btn-primary:active:not(:disabled) { transform: translateY(0); }
-.btn-primary:disabled {
-opacity: 0.55;
-cursor: not-allowed;
-transform: none;
-}
-
-.btn-ghost {
-background: var(–cream);
-color: var(–mauve);
-border: 1.5px solid var(–blush);
-padding: 10px 18px;
-}
-.btn-ghost:hover { background: var(–blush); border-color: var(–rose); }
-
-.btn-icon {
-background: var(–soft-lav);
-color: var(–mauve);
-border: none;
-padding: 10px 14px;
-border-radius: 12px;
-font-size: 13px;
-}
-.btn-icon:hover { background: var(–lavender); }
-
-.btn-download {
-background: linear-gradient(135deg, #b5d5c5 0%, #8db8a4 100%);
-color: #fff;
-padding: 12px 28px;
-box-shadow: 0 4px 16px rgba(141,184,164,0.4);
-}
-.btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(141,184,164,0.5); }
-
-/* ── Controls row ── */
-.controls-row {
-display: flex;
-align-items: center;
-justify-content: space-between;
-gap: 12px;
-flex-wrap: wrap;
-}
-
-/* ── Progress ── */
-.progress-wrap {
-margin-top: 6px;
-display: none;
-}
-.progress-wrap.visible { display: block; }
-
-.progress-bar-bg {
-height: 6px;
-background: var(–blush);
-border-radius: 99px;
-overflow: hidden;
-}
-
-.progress-bar-fill {
-height: 100%;
-background: linear-gradient(90deg, var(–rose), var(–dusty));
-border-radius: 99px;
-transition: width 0.4s ease;
-width: 0%;
-}
-
-.progress-label {
-font-size: 11.5px;
-color: var(–muted);
-margin-top: 6px;
-display: flex;
-justify-content: space-between;
-}
-
-/* ── Activity Log ── */
-.log-box {
-background: var(–cream);
-border: 1.5px solid var(–blush);
-border-radius: 14px;
-padding: 14px 16px;
-max-height: 220px;
-overflow-y: auto;
-font-size: 12.5px;
-line-height: 1.7;
-color: var(–muted);
-scrollbar-width: thin;
-scrollbar-color: var(–rose) transparent;
-}
-
-.log-box::-webkit-scrollbar { width: 4px; }
-.log-box::-webkit-scrollbar-track { background: transparent; }
-.log-box::-webkit-scrollbar-thumb { background: var(–rose); border-radius: 99px; }
-
-.log-entry {
-padding: 3px 0;
-border-bottom: 1px dashed rgba(232,180,176,0.3);
-animation: fadeIn 0.3s ease;
-display: flex;
-gap: 10px;
-align-items: flex-start;
-}
-.log-entry:last-child { border-bottom: none; }
-
-.log-time { color: var(–rose); font-size: 11px; flex-shrink: 0; margin-top: 1px; }
-.log-msg { flex: 1; }
-.log-ok { color: #8db8a4; }
-.log-err { color: #c97b7b; }
-.log-warn { color: #c9b07b; }
-.log-info { color: var(–muted); }
-
-/* ── Result area ── */
-.result-area {
-display: none;
-text-align: center;
-padding: 10px 0 4px;
-}
-.result-area.visible { display: block; }
-
-.result-title {
-font-family: ‘DM Serif Display’, serif;
-font-style: italic;
-font-size: 18px;
-color: var(–mauve);
-margin-bottom: 14px;
-}
-
-.result-wave {
-display: flex;
-align-items: center;
-justify-content: center;
-gap: 3px;
-margin-bottom: 18px;
-}
-.wave-bar {
-width: 3px;
-border-radius: 99px;
-background: var(–rose);
-animation: wavePulse 1.2s ease-in-out infinite;
-}
-@keyframes wavePulse {
-0%, 100% { height: 6px; opacity: 0.5; }
-50% { height: 24px; opacity: 1; }
-}
-
-audio {
-width: 100%;
-border-radius: 12px;
-accent-color: var(–dusty);
-margin-bottom: 14px;
-}
-
-/* ── Spinner ── */
-.spinner {
-display: inline-block;
-width: 14px;
-height: 14px;
-border: 2px solid rgba(255,255,255,0.4);
-border-top-color: #fff;
-border-radius: 50%;
-animation: spin 0.7s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ── Animations ── */
-@keyframes fadeUp {
-from { opacity: 0; transform: translateY(18px); }
-to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn {
-from { opacity: 0; }
-to   { opacity: 1; }
-}
-
-/* Stagger cards */
-.card:nth-child(1) { animation-delay: 0.05s; }
-.card:nth-child(2) { animation-delay: 0.12s; }
-.card:nth-child(3) { animation-delay: 0.19s; }
-.card:nth-child(4) { animation-delay: 0.26s; }
-.card:nth-child(5) { animation-delay: 0.33s; }
-
-/* ── Footer ── */
-.footer {
-text-align: center;
-margin-top: 42px;
-font-size: 11.5px;
-color: var(–rose);
-letter-spacing: 0.1em;
-opacity: 0.7;
-}
-
-/* ── Toast ── */
-.toast {
-position: fixed;
-bottom: 28px;
-right: 28px;
-background: var(–ink);
-color: var(–cream);
-padding: 10px 20px;
-border-radius: 50px;
-font-size: 13px;
-z-index: 999;
-opacity: 0;
-transform: translateY(10px);
-transition: all 0.3s ease;
-pointer-events: none;
-}
-.toast.show { opacity: 1; transform: translateY(0); }
-
-/* ── Pulse badge ── */
-.chunk-badge {
-display: inline-block;
-background: var(–soft-lav);
-color: var(–mauve);
-font-size: 11px;
-padding: 2px 10px;
-border-radius: 99px;
-margin-left: 8px;
-vertical-align: middle;
-letter-spacing: 0.05em;
-}
-
-.api-key-icon {
-cursor: pointer;
-padding: 10px 14px;
-background: var(–soft-lav);
-border-radius: 10px;
-font-size: 14px;
-border: none;
-transition: background 0.2s;
-}
-.api-key-icon:hover { background: var(–lavender); }
-</style>
-
-</head>
-<body>
-
-<!-- Floating petals -->
-
-<div class="petal" style="left:8%;animation-duration:14s;animation-delay:0s">✿</div>
-<div class="petal" style="left:22%;animation-duration:18s;animation-delay:3s">❀</div>
-<div class="petal" style="left:42%;animation-duration:12s;animation-delay:6s">✦</div>
-<div class="petal" style="left:64%;animation-duration:16s;animation-delay:1.5s">✿</div>
-<div class="petal" style="left:80%;animation-duration:20s;animation-delay:8s">❀</div>
-<div class="petal" style="left:91%;animation-duration:11s;animation-delay:4s">✦</div>
-
-<div class="wrapper">
-
-  <!-- Header -->
-
-  <header class="header">
-    <div class="header-eyebrow">✦ AI Audio Studio ✦</div>
-    <h1>K-Novel <em>Narrator</em></h1>
-    <div class="header-sub">Transform your webnovel chapters into lush, narrated audio</div>
-    <div class="divider">❀</div>
-  </header>
-
-  <!-- API Key -->
-
-  <div class="card">
-    <div class="card-label">🗝️ Gemini API Key</div>
-    <div class="api-row">
-      <input type="password" id="apiKey" placeholder="Paste your Gemini API key here…" autocomplete="off" />
-      <button class="api-key-icon" id="toggleKey" title="Show/hide key">👁</button>
-      <button class="btn btn-ghost" id="saveKey" style="flex-shrink:0">Save</button>
-    </div>
-    <div style="font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.6">
-      Stored in <code style="background:var(--cream);padding:1px 5px;border-radius:4px;font-size:11px">localStorage</code> — never sent anywhere except Google's API ✦
-    </div>
-  </div>
-
-  <!-- Voice & Style -->
-
-  <div class="card">
-    <div class="card-label">🎙️ Voice &amp; Style</div>
-    <div class="two-col">
-      <div>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px">Narrator Voice</div>
-        <select id="voiceSelect">
-          <option value="Aoede">Aoede — Breezy &amp; Warm</option>
-          <option value="Zephyr">Zephyr — Bright &amp; Clear</option>
-          <option value="Puck">Puck — Upbeat &amp; Playful</option>
-          <option value="Charon">Charon — Steady &amp; Calm</option>
-          <option value="Kore" selected>Kore — Firm &amp; Elegant</option>
-          <option value="Fenrir">Fenrir — Intense &amp; Dramatic</option>
-          <option value="Leda">Leda — Youthful &amp; Sweet</option>
-          <option value="Orus">Orus — Deep &amp; Authoritative</option>
-          <option value="Schedar">Schedar — Rich &amp; Velvety</option>
-          <option value="Orbit">Orbit — Smooth &amp; Measured</option>
-          <option value="Achernar">Achernar — Soft &amp; Gentle</option>
-          <option value="Gacrux">Gacrux — Mature &amp; Warm</option>
-        </select>
-      </div>
-      <div>
-        <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px">Emotion / Style Prompt</div>
-        <input type="text" id="stylePrompt" placeholder="e.g. slow, dramatic, whispery, tender…" />
-      </div>
-    </div>
-  </div>
-
-  <!-- Text Input -->
-
-  <div class="card">
-    <div class="card-label">
-      📖 Novel Text
-      <span class="chunk-badge" id="chunkInfo">0 chunks</span>
-    </div>
-    <div class="text-area-wrapper">
-      <textarea id="novelText" placeholder="Paste your webnovel chapter here… Long chapters are automatically split into 800-character narration blocks and stitched back together seamlessly."></textarea>
-      <span class="char-count" id="charCount">0 chars</span>
-    </div>
-    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-ghost" id="pasteBtn">📋 Paste from Clipboard</button>
-      <button class="btn btn-ghost" id="clearBtn">✕ Clear</button>
-    </div>
-  </div>
-
-  <!-- Generate -->
-
-  <div class="card">
-    <div class="card-label">⚙️ Generation</div>
-    <div class="controls-row">
-      <div style="font-size:12.5px;color:var(--muted);line-height:1.6">
-        Chunks are fetched sequentially with<br/>exponential backoff &amp; stitched into one MP3
-      </div>
-      <button class="btn btn-primary" id="generateBtn">
-        ✦ Narrate Chapter
-      </button>
-    </div>
-    <div class="progress-wrap" id="progressWrap">
-      <div style="height:10px"></div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progressFill"></div>
-      </div>
-      <div class="progress-label">
-        <span id="progressText">Processing…</span>
-        <span id="progressPct">0%</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Result -->
-
-  <div class="card" id="resultCard" style="display:none">
-    <div class="card-label">🎵 Your Narration</div>
-    <div class="result-area visible">
-      <div class="result-title">Your chapter is ready ✦</div>
-      <div class="result-wave" id="waveViz">
-        <div class="wave-bar" style="animation-delay:0s;height:8px"></div>
-        <div class="wave-bar" style="animation-delay:0.1s;height:16px"></div>
-        <div class="wave-bar" style="animation-delay:0.2s;height:22px"></div>
-        <div class="wave-bar" style="animation-delay:0.3s;height:14px"></div>
-        <div class="wave-bar" style="animation-delay:0.4s;height:22px"></div>
-        <div class="wave-bar" style="animation-delay:0.5s;height:16px"></div>
-        <div class="wave-bar" style="animation-delay:0.6s;height:8px"></div>
-      </div>
-      <audio id="audioPlayer" controls></audio>
-      <button class="btn btn-download" id="downloadBtn">⬇ Download MP3</button>
-    </div>
-  </div>
-
-  <!-- Activity Log -->
-
-  <div class="card">
-    <div class="card-label">📋 Activity Log</div>
-    <div class="log-box" id="logBox">
-      <div class="log-entry">
-        <span class="log-time">--:--</span>
-        <span class="log-msg log-info">Waiting for your chapter… Paste some text and hit Narrate ✦</span>
-      </div>
-    </div>
-    <div style="margin-top:10px;text-align:right">
-      <button class="btn btn-ghost" id="clearLog" style="font-size:11.5px;padding:7px 14px">Clear Log</button>
-    </div>
-  </div>
-
-  <footer class="footer">✦ K-Novel Narrator · Powered by Gemini 2.5 Pro TTS ✦</footer>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-/* ════════════════════════════════════════════
-   Constants & State
-════════════════════════════════════════════ */
-const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-tts:generateContent';
-const SAMPLE_RATE = 24000;
-const CHUNK_SIZE  = 800;
-
-let mp3Blob = null;
-let isRunning = false;
-
-/* ════════════════════════════════════════════
-   Init: Load saved key
-════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', () => {
-  const saved = localStorage.getItem('knv_api_key');
-  if (saved) {
-    document.getElementById('apiKey').value = saved;
-    log('info', 'Loaded saved API key from localStorage');
-  }
-  updateChunkInfo();
-});
-
-/* ════════════════════════════════════════════
-   Utility: Logging
-════════════════════════════════════════════ */
-function log(type, msg) {
-  const box = document.getElementById('logBox');
-  const now = new Date();
-  const time = now.toTimeString().slice(0,8);
-  const entry = document.createElement('div');
-  entry.className = 'log-entry';
-
-  const icons = { ok: '✓', err: '✗', warn: '⚠', info: '·' };
-  const icon  = icons[type] || '·';
-
-  entry.innerHTML = `
-    <span class="log-time">${time}</span>
-    <span class="log-msg log-${type}">${icon} ${escHtml(msg)}</span>`;
-  box.appendChild(entry);
-  box.scrollTop = box.scrollHeight;
-}
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function showToast(msg, dur = 2600) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), dur);
-}
-
-/* ════════════════════════════════════════════
-   API Key Save / Toggle
-════════════════════════════════════════════ */
-document.getElementById('saveKey').addEventListener('click', () => {
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key) { showToast('⚠ Please enter a key first'); return; }
-  localStorage.setItem('knv_api_key', key);
-  log('ok', 'API key saved to localStorage');
-  showToast('🗝️ Key saved!');
-});
-
-document.getElementById('toggleKey').addEventListener('click', () => {
-  const inp = document.getElementById('apiKey');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-  document.getElementById('toggleKey').textContent = inp.type === 'password' ? '👁' : '🙈';
-});
-
-/* ════════════════════════════════════════════
-   Paste & Clear
-════════════════════════════════════════════ */
-document.getElementById('pasteBtn').addEventListener('click', async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    document.getElementById('novelText').value = text;
-    updateChunkInfo();
-    log('ok', `Pasted ${text.length.toLocaleString()} characters from clipboard`);
-    showToast('📋 Pasted!');
-  } catch (e) {
-    log('err', 'Clipboard access denied — please paste manually (Ctrl+V)');
-    showToast('⚠ Clipboard access denied');
-  }
-});
-
-document.getElementById('clearBtn').addEventListener('click', () => {
-  document.getElementById('novelText').value = '';
-  updateChunkInfo();
-  log('info', 'Text cleared');
-});
-
-document.getElementById('clearLog').addEventListener('click', () => {
-  document.getElementById('logBox').innerHTML = '';
-  log('info', 'Log cleared');
-});
-
-/* ════════════════════════════════════════════
-   Char count & chunk info
-════════════════════════════════════════════ */
-document.getElementById('novelText').addEventListener('input', updateChunkInfo);
-
-function updateChunkInfo() {
-  const txt  = document.getElementById('novelText').value;
-  const len  = txt.length;
-  document.getElementById('charCount').textContent = len.toLocaleString() + ' chars';
-  const n = smartChunk(txt).length;
-  const badge = document.getElementById('chunkInfo');
-  badge.textContent = n + (n === 1 ? ' chunk' : ' chunks');
-}
-
-/* ════════════════════════════════════════════
-   Smart Chunker
-════════════════════════════════════════════ */
-function smartChunk(text, maxLen = CHUNK_SIZE) {
-  const chunks = [];
-  let remaining = text.trim();
-  if (!remaining) return chunks;
-
-  while (remaining.length > 0) {
-    if (remaining.length <= maxLen) {
-      chunks.push(remaining);
-      break;
-    }
-
-    // Search for best sentence-break within the window
-    let breakAt = maxLen;
-    let best = -1;
-
-    // Scan backwards from maxLen for sentence-ending punctuation
-    for (let i = Math.min(maxLen - 1, remaining.length - 1); i >= maxLen - 250 && i >= 0; i--) {
-      if (/[.!?。！？…]/.test(remaining[i])) {
-        best = i + 1;
-        break;
-      }
-    }
-
-    if (best > 50) {
-      breakAt = best;
-    } else {
-      // Fall back to last whitespace
-      const ws = remaining.lastIndexOf(' ', maxLen);
-      if (ws > maxLen - 120 && ws > 0) breakAt = ws;
-    }
-
-    chunks.push(remaining.substring(0, breakAt).trim());
-    remaining = remaining.substring(breakAt).trim();
-  }
-
-  return chunks;
-}
-
-/* ════════════════════════════════════════════
-   Progress helpers
-════════════════════════════════════════════ */
-function setProgress(done, total) {
-  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressPct').textContent   = pct + '%';
-  document.getElementById('progressText').textContent  = `Chunk ${done} / ${total}`;
-}
-
-/* ════════════════════════════════════════════
-   Exponential Backoff Fetch
-════════════════════════════════════════════ */
-async function fetchWithBackoff(url, opts, maxRetries = 4) {
-  let delay = 1200;
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      const res = await fetch(url, opts);
-      if (res.status === 429 || res.status >= 500) {
-        const errText = await res.text();
-        if (attempt === maxRetries) throw new Error(`HTTP ${res.status}: ${errText.slice(0,120)}`);
-        log('warn', `Attempt ${attempt} → HTTP ${res.status}. Retrying in ${delay/1000}s…`);
-        await sleep(delay);
-        delay *= 2;
-        continue;
-      }
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
-      }
-      return res;
-    } catch (e) {
-      if (attempt === maxRetries) throw e;
-      if (e.message.startsWith('HTTP')) throw e;
-      log('warn', `Network error (attempt ${attempt}): ${e.message}. Retrying…`);
-      await sleep(delay);
-      delay *= 2;
-    }
-  }
-}
-
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-/* ════════════════════════════════════════════
-   Gemini TTS: single chunk → Int16Array (PCM)
-════════════════════════════════════════════ */
-async function fetchChunkAudio(apiKey, text, voiceName, stylePrompt, chunkIdx) {
-  // TTS models do NOT support system_instruction — embed style directly in the prompt text
-  const styledText = stylePrompt
-    ? `Read the following passage as a professional audiobook narrator in a ${stylePrompt} tone, with natural pacing and emotion:\n\n${text}`
-    : text;
-
-  const body = {
-    contents: [{
-      parts: [{ text: styledText }]
-    }],
-    generationConfig: {
-      responseModalities: ['AUDIO'],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: {
-            voiceName: voiceName
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Novel Narrator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Playfair+Display:ital,wght@0,600;1,600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['"Playfair Display"', 'serif'],
+                        'sans': ['"Nunito"', 'sans-serif'],
+                    },
+                    colors: {
+                        cream: '#FFFBF9',
+                        blush: '#FFD1DC',
+                        peach: '#FFE5B4',
+                        taupe: '#9C8987',
+                        mocha: '#5C4E4D',
+                        glass: 'rgba(255, 255, 255, 0.65)'
+                    },
+                    boxShadow: {
+                        'glass': '0 10px 40px -10px rgba(255, 182, 193, 0.5)',
+                    }
+                }
+            }
         }
-      }
-    }
-  };
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #FFF0F5, transparent 50%),
+                        radial-gradient(circle at bottom right, #FFE4E1, transparent 50%),
+                        #FFFBF9;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
 
-  // Use x-goog-api-key header (required by newer Gemini API versions)
-  const url = GEMINI_ENDPOINT;
+        /* Custom Scrollbar for the journal */
+        .journal-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .journal-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        .journal-scroll::-webkit-scrollbar-thumb {
+            background: #FFD1DC;
+            border-radius: 10px;
+        }
+        .journal-scroll::-webkit-scrollbar-thumb:hover {
+            background: #FFB6C1;
+        }
 
-  log('info', `Chunk ${chunkIdx}: requesting audio (${text.length} chars)…`);
+        /* Toast Animation */
+        .toast-enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .toast-enter-active {
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.3s ease-out;
+        }
+        .toast-exit {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast-exit-active {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s ease-in;
+        }
 
-  const res = await fetchWithBackoff(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': apiKey
-    },
-    body: JSON.stringify(body)
-  });
+        /* Spinner */
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #5C4E4D;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="text-mocha font-sans py-10 px-4 flex justify-center items-center">
 
-  const json = await res.json();
+    <main class="w-full max-w-3xl glass-card rounded-[2.5rem] shadow-glass p-8 md:p-12">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-serif font-semibold mb-2">K-Novel Narrator</h1>
+            <p class="text-taupe text-sm md:text-base">Transform your favorite webnovels into beautiful audiobooks.</p>
+        </header>
 
-  // Extract base64 PCM audio
-  const parts = json?.candidates?.[0]?.content?.parts;
-  if (!parts) throw new Error(`Chunk ${chunkIdx}: No parts in response. ${JSON.stringify(json).slice(0,200)}`);
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="col-span-1 md:col-span-1">
+                    <label class="block text-sm font-semibold text-taupe mb-1 ml-2">API Key</label>
+                    <input type="password" id="api-key" placeholder="Gemini API Key..." class="w-full bg-white/70 border border-white/50 text-mocha rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blush transition-all shadow-sm">
+                </div>
+                <div class="col-span-1 md:col-span-1">
+                    <label class="block text-sm font-semibold text-taupe mb-1 ml-2">Voice Model</label>
+                    <select id="voice-select" class="w-full bg-white/70 border border-white/50 text-mocha rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blush transition-all shadow-sm appearance-none cursor-pointer">
+                        <option value="Kore">Kore</option>
+                        <option value="Aoede">Aoede</option>
+                        <option value="Zephyr">Zephyr</option>
+                        <option value="Puck">Puck</option>
+                        <option value="Charon">Charon</option>
+                        <option value="Fenrir">Fenrir</option>
+                    </select>
+                </div>
+                <div class="col-span-1 md:col-span-1">
+                    <label class="block text-sm font-semibold text-taupe mb-1 ml-2">Emotion / Style</label>
+                    <input type="text" id="style-input" placeholder="e.g., softly, with longing" class="w-full bg-white/70 border border-white/50 text-mocha rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-blush transition-all shadow-sm">
+                </div>
+            </div>
 
-  const audioPart = parts.find(p => p.inlineData?.mimeType?.startsWith('audio/'));
-  if (!audioPart) throw new Error(`Chunk ${chunkIdx}: No audio part found. Keys: ${parts.map(p=>Object.keys(p)).join(', ')}`);
+            <div>
+                <div class="flex justify-between items-end mb-1 ml-2 mr-2">
+                    <label class="block text-sm font-semibold text-taupe">Story Chapter</label>
+                    <div class="space-x-3 text-xs font-semibold text-taupe">
+                        <button id="btn-paste" class="hover:text-mocha transition-colors">Paste</button>
+                        <button id="btn-clear" class="hover:text-red-400 transition-colors">Clear</button>
+                    </div>
+                </div>
+                <textarea id="story-input" rows="8" placeholder="Paste your chapter here..." class="w-full bg-white/70 border border-white/50 text-mocha rounded-[1.5rem] p-5 focus:outline-none focus:ring-2 focus:ring-blush transition-all shadow-sm resize-y"></textarea>
+            </div>
 
-  const b64 = audioPart.inlineData.data;
-  const mime = audioPart.inlineData.mimeType; // e.g. "audio/pcm;rate=24000"
-  log('ok', `Chunk ${chunkIdx}: received ${mime} (${Math.round(b64.length * 0.75 / 1024)} KB)`);
+            <button id="btn-generate" class="w-full bg-blush/80 hover:bg-blush border border-white/60 text-mocha font-bold text-lg rounded-full py-4 transition-all shadow-sm flex items-center justify-center space-x-2">
+                <span>Create Audiobook</span>
+                <div id="loading-spinner" class="spinner hidden"></div>
+            </button>
 
-  // Decode base64 → binary → Int16Array
-  const binary = atob(b64);
-  const bytes   = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            <div id="journal-container" class="hidden flex-col space-y-4">
+                <div class="bg-white/40 border border-white/50 rounded-[1.5rem] p-5 shadow-inner">
+                    <h3 class="text-sm font-serif font-semibold text-taupe border-b border-white/40 pb-2 mb-3">Activity Journal</h3>
+                    <div id="journal-logs" class="journal-scroll h-32 overflow-y-auto space-y-2 text-sm font-mono text-mocha/80">
+                        </div>
+                </div>
 
-  return new Int16Array(bytes.buffer);
-}
+                <div id="audio-output" class="hidden flex-col items-center bg-white/60 border border-white/50 rounded-[1.5rem] p-6 shadow-sm space-y-4">
+                    <h3 class="text-lg font-serif font-semibold text-mocha">Your Audiobook is Ready 🌸</h3>
+                    <audio id="audio-player" controls class="w-full"></audio>
+                    <a id="download-link" class="bg-mocha/10 hover:bg-mocha/20 text-mocha font-semibold rounded-full px-6 py-2 transition-all cursor-pointer">
+                        Download MP3
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
 
-/* ════════════════════════════════════════════
-   Stitch PCM arrays
-════════════════════════════════════════════ */
-function stitchPCM(arrays) {
-  const totalLen = arrays.reduce((s, a) => s + a.length, 0);
-  const result   = new Int16Array(totalLen);
-  let offset = 0;
-  for (const arr of arrays) {
-    result.set(arr, offset);
-    offset += arr.length;
-  }
-  return result;
-}
+    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-white/80 backdrop-blur-xl border border-white/60 text-mocha px-6 py-3 rounded-full shadow-lg flex items-center space-x-3 toast-enter hidden z-50">
+        <span id="toast-icon">✨</span>
+        <span id="toast-message" class="text-sm font-semibold">Notification</span>
+    </div>
 
-/* ════════════════════════════════════════════
-   Encode PCM → MP3 via lamejs
-════════════════════════════════════════════ */
-function encodeMp3(pcmData, sampleRate = SAMPLE_RATE, bitrate = 128) {
-  log('info', `Encoding ${(pcmData.length / sampleRate).toFixed(1)}s of audio to MP3 (${bitrate}kbps)…`);
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const elements = {
+                apiKey: document.getElementById('api-key'),
+                voiceSelect: document.getElementById('voice-select'),
+                styleInput: document.getElementById('style-input'),
+                storyInput: document.getElementById('story-input'),
+                btnPaste: document.getElementById('btn-paste'),
+                btnClear: document.getElementById('btn-clear'),
+                btnGenerate: document.getElementById('btn-generate'),
+                spinner: document.getElementById('loading-spinner'),
+                journalContainer: document.getElementById('journal-container'),
+                journalLogs: document.getElementById('journal-logs'),
+                audioOutput: document.getElementById('audio-output'),
+                audioPlayer: document.getElementById('audio-player'),
+                downloadLink: document.getElementById('download-link'),
+                toast: document.getElementById('toast'),
+                toastMsg: document.getElementById('toast-message'),
+                toastIcon: document.getElementById('toast-icon')
+            };
 
-  const encoder   = new lamejs.Mp3Encoder(1, sampleRate, bitrate);
-  const blockSize = 1152;
-  const mp3Parts  = [];
+            // Constants
+            const CHUNK_LIMIT = 800; // Optimal for TTS pacing and limits
+            const SAMPLE_RATE = 24000; // Gemini standard PCM sample rate
+            
+            // Initialization
+            elements.apiKey.value = localStorage.getItem('gemini_api_key') || '';
+            elements.apiKey.addEventListener('change', (e) => localStorage.setItem('gemini_api_key', e.target.value));
 
-  for (let i = 0; i < pcmData.length; i += blockSize) {
-    const chunk   = pcmData.subarray(i, i + blockSize);
-    const encoded = encoder.encodeBuffer(chunk);
-    if (encoded.length > 0) mp3Parts.push(new Uint8Array(encoded));
-  }
+            // -- UI Utilities --
+            
+            function showToast(message, type = 'info') {
+                elements.toastMsg.textContent = message;
+                elements.toastIcon.textContent = type === 'error' ? '❌' : (type === 'success' ? '🌸' : '✨');
+                elements.toast.classList.remove('hidden', 'toast-exit', 'toast-exit-active');
+                elements.toast.classList.add('toast-enter-active');
+                
+                setTimeout(() => {
+                    elements.toast.classList.remove('toast-enter-active');
+                    elements.toast.classList.add('toast-exit-active');
+                    setTimeout(() => {
+                        elements.toast.classList.add('hidden');
+                        elements.toast.classList.remove('toast-exit-active');
+                    }, 300);
+                }, 3000);
+            }
 
-  const flushed = encoder.flush();
-  if (flushed.length > 0) mp3Parts.push(new Uint8Array(flushed));
+            function logJournal(message, isError = false) {
+                const time = new Date().toLocaleTimeString([], { hour12: false });
+                const logEntry = document.createElement('div');
+                logEntry.innerHTML = `<span class="text-taupe/60">[${time}]</span> <span class="${isError ? 'text-red-400 font-semibold' : ''}">${message}</span>`;
+                elements.journalLogs.appendChild(logEntry);
+                elements.journalLogs.scrollTop = elements.journalLogs.scrollHeight;
+            }
 
-  // Merge all Uint8Arrays into one blob
-  const totalBytes = mp3Parts.reduce((s, a) => s + a.length, 0);
-  const merged     = new Uint8Array(totalBytes);
-  let off = 0;
-  for (const part of mp3Parts) { merged.set(part, off); off += part.length; }
+            // -- Button Actions --
 
-  log('ok', `MP3 encoded: ${(totalBytes / 1024).toFixed(0)} KB`);
-  return new Blob([merged], { type: 'audio/mp3' });
-}
+            elements.btnPaste.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    elements.storyInput.value += text;
+                    showToast('Pasted successfully!');
+                } catch (err) {
+                    showToast('Clipboard access denied', 'error');
+                }
+            });
 
-/* ════════════════════════════════════════════
-   Main Generate Handler
-════════════════════════════════════════════ */
-document.getElementById('generateBtn').addEventListener('click', generate);
+            elements.btnClear.addEventListener('click', () => {
+                elements.storyInput.value = '';
+            });
 
-async function generate() {
-  if (isRunning) return;
+            // -- Core Logic --
 
-  const apiKey     = document.getElementById('apiKey').value.trim();
-  const text       = document.getElementById('novelText').value.trim();
-  const voiceName  = document.getElementById('voiceSelect').value;
-  const stylePrompt = document.getElementById('stylePrompt').value.trim();
+            function chunkText(text, limit) {
+                const chunks = [];
+                let remaining = text.trim();
 
-  if (!apiKey) { showToast('⚠ Please enter your API key'); log('err', 'No API key provided'); return; }
-  if (!text)   { showToast('⚠ Please paste some text first'); log('err', 'No text to narrate'); return; }
-  if (typeof lamejs === 'undefined') { log('err', 'lamejs not loaded — check CDN connection'); return; }
+                while (remaining.length > 0) {
+                    if (remaining.length <= limit) {
+                        chunks.push(remaining);
+                        break;
+                    }
 
-  const chunks = smartChunk(text);
-  if (chunks.length === 0) { showToast('⚠ No text chunks generated'); return; }
+                    let splitIndex = -1;
+                    
+                    // Priority 1: Double newlines (paragraphs)
+                    splitIndex = remaining.lastIndexOf('\n\n', limit);
+                    
+                    // Priority 2: Sentence endings
+                    if (splitIndex === -1) {
+                        const match = remaining.substring(0, limit).match(/[.!?]["']?\s+(?=[A-Z])/g);
+                        if (match) {
+                            splitIndex = remaining.lastIndexOf(match[match.length - 1], limit);
+                            if(splitIndex !== -1) splitIndex += match[match.length-1].length - 1;
+                        }
+                    }
 
-  isRunning = true;
-  mp3Blob   = null;
+                    // Priority 3: Spaces
+                    if (splitIndex === -1) {
+                        splitIndex = remaining.lastIndexOf(' ', limit);
+                    }
 
-  const btn = document.getElementById('generateBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Narrating…';
+                    // Fallback: Hard cut if no spaces found
+                    if (splitIndex === -1 || splitIndex === 0) {
+                        splitIndex = limit;
+                    }
 
-  document.getElementById('resultCard').style.display = 'none';
-  const progWrap = document.getElementById('progressWrap');
-  progWrap.classList.add('visible');
-  setProgress(0, chunks.length);
+                    chunks.push(remaining.substring(0, splitIndex).trim());
+                    remaining = remaining.substring(splitIndex).trim();
+                }
+                return chunks;
+            }
 
-  log('info', `Starting narration: ${chunks.length} chunk(s), voice "${voiceName}"${stylePrompt ? ', style: '+stylePrompt : ''}`);
+            function base64ToInt16Array(base64) {
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return new Int16Array(bytes.buffer);
+            }
 
-  const pcmArrays = [];
+            async function fetchTTSChunk(text, voice, style, apiKey, retries = 3) {
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                const promptText = style.trim() ? `Say ${style.trim()}:\n\n${text}` : text;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: promptText }] }],
+                    generationConfig: {
+                        responseModalities: ["AUDIO"],
+                        speechConfig: {
+                            voiceConfig: {
+                                prebuiltVoiceConfig: {
+                                    voiceName: voice
+                                }
+                            }
+                        }
+                    }
+                };
 
-  try {
-    for (let i = 0; i < chunks.length; i++) {
-      setProgress(i, chunks.length);
-      const pcm = await fetchChunkAudio(apiKey, chunks[i], voiceName, stylePrompt, i + 1);
-      pcmArrays.push(pcm);
-      setProgress(i + 1, chunks.length);
-      // Small breathing gap between chunks to avoid rate-limit hammering
-      if (i < chunks.length - 1) await sleep(350);
-    }
+                for (let attempt = 0; attempt < retries; attempt++) {
+                    try {
+                        const response = await fetch(endpoint, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(payload)
+                        });
 
-    log('info', 'All chunks received — stitching PCM…');
-    const fullPcm = stitchPCM(pcmArrays);
+                        if (!response.ok) {
+                            if (response.status === 429) throw new Error("Rate limit exceeded");
+                            const errData = await response.json();
+                            throw new Error(errData.error?.message || `API Error: ${response.status}`);
+                        }
 
-    mp3Blob = encodeMp3(fullPcm);
+                        const data = await response.json();
+                        
+                        // Extract standard base64 PCM16 inlineData
+                        const base64Audio = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                        
+                        if (!base64Audio) {
+                            throw new Error("No audio data returned in response.");
+                        }
 
-    const url = URL.createObjectURL(mp3Blob);
-    const player = document.getElementById('audioPlayer');
-    player.src = url;
+                        return base64ToInt16Array(base64Audio);
 
-    document.getElementById('resultCard').style.display = 'block';
-    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } catch (error) {
+                        if (attempt === retries - 1) throw error;
+                        const delay = Math.pow(2, attempt) * 1500; // Exponential backoff (1.5s, 3s, etc.)
+                        logJournal(`Chunk failed (${error.message}). Retrying in ${delay/1000}s...`);
+                        await new Promise(r => setTimeout(r, delay));
+                    }
+                }
+            }
 
-    log('ok', `✦ Narration complete! Total duration ≈ ${(fullPcm.length / SAMPLE_RATE).toFixed(1)}s`);
-    showToast('✦ Narration ready!', 3000);
+            function encodeMP3(buffers) {
+                if (typeof lamejs === 'undefined') {
+                    throw new Error("LameJS library failed to load.");
+                }
 
-  } catch (err) {
-    log('err', 'Generation failed: ' + err.message);
-    showToast('✗ Error — see log for details', 3500);
-    console.error(err);
-  } finally {
-    isRunning = false;
-    btn.disabled = false;
-    btn.innerHTML = '✦ Narrate Chapter';
-    progWrap.classList.remove('visible');
-  }
-}
+                const channels = 1; 
+                const kbps = 128;
+                const mp3encoder = new lamejs.Mp3Encoder(channels, SAMPLE_RATE, kbps);
+                const mp3Data = [];
+                const sampleBlockSize = 1152; // LameJS max block size
 
-/* ════════════════════════════════════════════
-   Download
-════════════════════════════════════════════ */
-document.getElementById('downloadBtn').addEventListener('click', () => {
-  if (!mp3Blob) { showToast('No audio to download yet'); return; }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(mp3Blob);
-  const timestamp = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
-  a.download = `k-novel-narration-${timestamp}.mp3`;
-  a.click();
-  log('ok', `Downloaded: ${a.download}`);
-  showToast('⬇ Download started!');
-});
-</script>
+                for (let buffer of buffers) {
+                    for (let i = 0; i < buffer.length; i += sampleBlockSize) {
+                        const sampleChunk = buffer.subarray(i, i + sampleBlockSize);
+                        const mp3buf = mp3encoder.encodeBuffer(sampleChunk);
+                        if (mp3buf.length > 0) {
+                            mp3Data.push(mp3buf);
+                        }
+                    }
+                }
 
+                const finalBuf = mp3encoder.flush();
+                if (finalBuf.length > 0) {
+                    mp3Data.push(finalBuf);
+                }
+
+                return new Blob(mp3Data, { type: 'audio/mp3' });
+            }
+
+            // -- Main Execution --
+
+            elements.btnGenerate.addEventListener('click', async () => {
+                const text = elements.storyInput.value.trim();
+                const apiKey = elements.apiKey.value.trim();
+                const voice = elements.voiceSelect.value;
+                const style = elements.styleInput.value;
+
+                if (!apiKey) return showToast("Please enter your API Key.", "error");
+                if (!text) return showToast("Please paste some story text.", "error");
+
+                // UI Reset
+                elements.btnGenerate.disabled = true;
+                elements.spinner.classList.remove('hidden');
+                elements.btnGenerate.classList.add('opacity-70', 'cursor-not-allowed');
+                elements.journalContainer.classList.remove('hidden');
+                elements.audioOutput.classList.add('hidden');
+                elements.journalLogs.innerHTML = '';
+                
+                logJournal('Processing initiated...');
+
+                try {
+                    const chunks = chunkText(text, CHUNK_LIMIT);
+                    logJournal(`Story split into ${chunks.length} manageable chunks.`);
+
+                    const audioBuffers = [];
+
+                    for (let i = 0; i < chunks.length; i++) {
+                        logJournal(`Fetching audio for part ${i + 1} of ${chunks.length}...`);
+                        const pcmData = await fetchTTSChunk(chunks[i], voice, style, apiKey);
+                        audioBuffers.push(pcmData);
+                        
+                        // Add a small delay between requests to avoid rapid rate-limiting
+                        if (i < chunks.length - 1) {
+                            await new Promise(r => setTimeout(r, 1000));
+                        }
+                    }
+
+                    logJournal('All parts fetched. Stitching and encoding to MP3...');
+                    
+                    // Use a timeout to allow UI update before heavy CPU encoding task
+                    await new Promise(r => setTimeout(r, 100)); 
+                    
+                    const mp3Blob = encodeMP3(audioBuffers);
+                    const mp3Url = URL.createObjectURL(mp3Blob);
+
+                    // Setup Player and Download
+                    elements.audioPlayer.src = mp3Url;
+                    elements.downloadLink.href = mp3Url;
+                    
+                    const safeName = text.substring(0, 25).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                    elements.downloadLink.download = `k_novel_${safeName}.mp3`;
+
+                    elements.audioOutput.classList.remove('hidden');
+                    elements.audioOutput.classList.add('flex');
+                    logJournal('MP3 created successfully! 🌸');
+                    showToast('Audiobook generation complete!', 'success');
+
+                } catch (error) {
+                    logJournal(`Generation aborted: ${error.message}`, true);
+                    showToast("An error occurred. Check journal.", "error");
+                    console.error(error);
+                } finally {
+                    elements.btnGenerate.disabled = false;
+                    elements.spinner.classList.add('hidden');
+                    elements.btnGenerate.classList.remove('opacity-70', 'cursor-not-allowed');
+                }
+            });
+        });
+    </script>
 </body>
 </html>
