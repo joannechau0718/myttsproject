@@ -1,532 +1,1015 @@
 <!DOCTYPE html>
 
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>한국어 음성 합성 · Gemini TTS</title>
+<title>K-Novel Narrator ✦</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Gowun+Dodum&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --cream:      #fdf6ef;
+    --blush:      #f5ddd8;
+    --rose:       #e8b4b0;
+    --dusty:      #c98d8a;
+    --mauve:      #9b6b78;
+    --lavender:   #d5c8e8;
+    --soft-lav:   #ede8f5;
+    --ink:        #3d2b35;
+    --muted:      #7a6070;
+    --white:      #fffcfa;
+    --shadow:     rgba(155, 107, 120, 0.15);
+    --shadow-md:  rgba(155, 107, 120, 0.25);
+  }
 
-:root {
-–bg: #0b0b0e;
-–surface: rgba(255,255,255,0.025);
-–border: rgba(255,255,255,0.07);
-–border-active: rgba(210,55,55,0.5);
-–red: #c83232;
-–red-glow: rgba(200,50,50,0.3);
-–text: #e2d9d0;
-–text-dim: #555;
-–text-muted: #3a3a3a;
-–mono: ‘JetBrains Mono’, monospace;
-–serif: ‘Nanum Myeongjo’, Georgia, serif;
-}
-
-html, body {
-height: 100%;
-background: var(–bg);
-color: var(–text);
-font-family: var(–serif);
-}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
+background: var(–cream);
+color: var(–ink);
+font-family: ‘Gowun Dodum’, sans-serif;
 min-height: 100vh;
-display: flex;
-align-items: center;
-justify-content: center;
-padding: 2rem 1rem;
-background-image:
-radial-gradient(ellipse 90% 50% at 50% -5%, rgba(180,25,25,0.1) 0%, transparent 65%),
-repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.012) 40px),
-repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.012) 40px);
+overflow-x: hidden;
+position: relative;
 }
 
-::selection { background: rgba(200,50,50,0.35); }
-
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 2px; }
-
-.wrap {
-width: 100%;
-max-width: 580px;
-animation: fadeUp 0.6s ease both;
+/* ── Decorative background ── */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background:
+radial-gradient(ellipse 60% 50% at 10% 20%, rgba(213,200,232,0.35) 0%, transparent 60%),
+radial-gradient(ellipse 50% 60% at 90% 80%, rgba(245,221,216,0.45) 0%, transparent 55%),
+radial-gradient(ellipse 40% 40% at 50% 50%, rgba(253,246,239,0) 0%, var(–cream) 100%);
+pointer-events: none;
+z-index: 0;
 }
 
-@keyframes fadeUp {
-from { opacity: 0; transform: translateY(16px); }
-to   { opacity: 1; transform: translateY(0); }
+.petal {
+position: fixed;
+pointer-events: none;
+z-index: 0;
+opacity: 0.18;
+font-size: clamp(12px, 2vw, 22px);
+animation: drift linear infinite;
+}
+
+@keyframes drift {
+0%   { transform: translateY(-60px) rotate(0deg); opacity: 0; }
+10%  { opacity: 0.18; }
+90%  { opacity: 0.12; }
+100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+}
+
+/* ── Layout ── */
+.wrapper {
+position: relative;
+z-index: 1;
+max-width: 780px;
+margin: 0 auto;
+padding: 48px 24px 80px;
 }
 
 /* ── Header ── */
-.header { text-align: center; margin-bottom: 3rem; }
+.header {
+text-align: center;
+margin-bottom: 42px;
+animation: fadeUp 0.7s ease both;
+}
 
-.eyebrow {
-font-family: var(–mono);
-font-size: 0.58rem;
-font-weight: 300;
-letter-spacing: 0.45em;
-color: #333;
+.header-eyebrow {
+font-family: ‘Gowun Dodum’, sans-serif;
+font-size: 11px;
+letter-spacing: 0.3em;
 text-transform: uppercase;
-margin-bottom: 1.1rem;
+color: var(–dusty);
+margin-bottom: 10px;
 }
 
-h1 {
-font-size: clamp(2rem, 6vw, 2.8rem);
-font-weight: 800;
-letter-spacing: -0.025em;
-line-height: 1.05;
-color: var(–text);
+.header h1 {
+font-family: ‘DM Serif Display’, serif;
+font-size: clamp(32px, 6vw, 52px);
+font-weight: 400;
+color: var(–ink);
+line-height: 1.1;
+letter-spacing: -0.02em;
 }
 
-.subtitle {
-margin-top: 0.75rem;
-font-family: var(–mono);
-font-size: 0.7rem;
-color: var(–text-dim);
-letter-spacing: 0.06em;
+.header h1 em {
+font-style: italic;
+color: var(–mauve);
 }
 
-/* ── Divider ── */
+.header-sub {
+margin-top: 10px;
+font-size: 13px;
+color: var(–muted);
+letter-spacing: 0.04em;
+}
+
 .divider {
 display: flex;
 align-items: center;
-gap: 1rem;
-margin: 0 0 2.5rem;
+gap: 10px;
+margin: 18px auto 0;
+max-width: 200px;
+color: var(–rose);
+font-size: 13px;
 }
-.divider-line {
+.divider::before, .divider::after {
+content: ‘’;
 flex: 1;
 height: 1px;
-background: linear-gradient(to right, transparent, var(–border));
-}
-.divider-line.rev { background: linear-gradient(to left, transparent, var(–border)); }
-.divider-dot {
-width: 4px; height: 4px;
-background: var(–red);
-border-radius: 50%;
-box-shadow: 0 0 8px var(–red-glow);
-flex-shrink: 0;
+background: var(–rose);
+opacity: 0.6;
 }
 
-/* ── Form ── */
-.form { display: flex; flex-direction: column; gap: 1.6rem; }
+/* ── Cards ── */
+.card {
+background: var(–white);
+border-radius: 20px;
+padding: 28px 30px;
+box-shadow: 0 4px 24px var(–shadow), 0 1px 4px rgba(0,0,0,0.04);
+margin-bottom: 20px;
+animation: fadeUp 0.6s ease both;
+border: 1px solid rgba(232, 180, 176, 0.2);
+transition: box-shadow 0.3s ease;
+}
 
-.field { display: flex; flex-direction: column; gap: 0.5rem; }
+.card:hover { box-shadow: 0 8px 36px var(–shadow-md), 0 1px 4px rgba(0,0,0,0.05); }
 
-.label {
-font-family: var(–mono);
-font-size: 0.6rem;
-font-weight: 400;
-letter-spacing: 0.18em;
+.card-label {
+font-size: 10.5px;
+letter-spacing: 0.22em;
 text-transform: uppercase;
-color: var(–text-dim);
+color: var(–dusty);
+font-family: ‘Gowun Dodum’, sans-serif;
+margin-bottom: 12px;
 display: flex;
-justify-content: space-between;
+align-items: center;
+gap: 7px;
+}
+.card-label::after {
+content: ‘’;
+flex: 1;
+height: 1px;
+background: var(–blush);
+}
+
+/* ── API Key field ── */
+.api-row {
+display: flex;
+gap: 10px;
 align-items: center;
 }
 
-.label .optional { color: var(–text-muted); }
-.char-count { color: var(–text-muted); transition: color 0.2s; }
-.char-count.warn { color: #e88; }
-
-.input, textarea {
+input[type=“password”], input[type=“text”], textarea, select {
 width: 100%;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 3px;
-color: var(–text);
-font-family: var(–serif);
-font-size: 0.95rem;
-padding: 0.85rem 1rem;
+background: var(–cream);
+border: 1.5px solid var(–blush);
+border-radius: 12px;
+padding: 11px 16px;
+font-family: ‘Gowun Dodum’, sans-serif;
+font-size: 14px;
+color: var(–ink);
 outline: none;
-transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
--webkit-appearance: none;
+transition: border-color 0.25s, box-shadow 0.25s;
+resize: none;
 }
 
-.input:focus, textarea:focus {
-border-color: var(–border-active);
-background: rgba(255,255,255,0.04);
-box-shadow: 0 0 0 3px rgba(200,50,50,0.07);
+input[type=“password”]:focus,
+input[type=“text”]:focus,
+textarea:focus,
+select:focus {
+border-color: var(–rose);
+box-shadow: 0 0 0 3px rgba(232,180,176,0.2);
 }
 
-.input::placeholder, textarea::placeholder { color: #2e2e2e; }
-
-.key-wrap { position: relative; }
-.key-wrap .input { padding-right: 4rem; font-family: var(–mono); font-size: 0.8rem; }
-.toggle-key {
-position: absolute; right: 0.85rem; top: 50%; transform: translateY(-50%);
-background: none; border: none; color: #444; cursor: pointer;
-font-family: var(–mono); font-size: 0.6rem; letter-spacing: 0.08em;
-padding: 0.2rem 0.3rem;
-transition: color 0.15s;
+select {
+cursor: pointer;
+appearance: none;
+background-image: url(“data:image/svg+xml,%3Csvg xmlns=‘http://www.w3.org/2000/svg’ width=‘12’ height=‘8’ viewBox=‘0 0 12 8’%3E%3Cpath d=‘M1 1l5 5 5-5’ stroke=’%23c98d8a’ stroke-width=‘1.5’ fill=‘none’ stroke-linecap=‘round’/%3E%3C/svg%3E”);
+background-repeat: no-repeat;
+background-position: right 14px center;
+padding-right: 36px;
 }
-.toggle-key:hover { color: #888; }
+
+/* ── Text area ── */
+.text-area-wrapper { position: relative; }
 
 textarea {
-resize: vertical;
-min-height: 140px;
-line-height: 1.85;
+min-height: 200px;
+line-height: 1.75;
+font-size: 14px;
+letter-spacing: 0.01em;
 }
 
-/* ── Voice Grid ── */
-.voices {
-display: grid;
-grid-template-columns: repeat(5, 1fr);
-gap: 0.4rem;
-}
-
-@media (max-width: 480px) {
-.voices { grid-template-columns: repeat(3, 1fr); }
-}
-
-.voice-btn {
-padding: 0.7rem 0.3rem;
-background: var(–surface);
-border: 1px solid var(–border);
-border-radius: 3px;
-color: #666;
-cursor: pointer;
-font-family: var(–mono);
-font-size: 0.62rem;
-line-height: 1.5;
-text-align: center;
-transition: all 0.16s;
-}
-
-.voice-btn:hover { background: rgba(255,255,255,0.04); color: #999; }
-
-.voice-btn.active {
-background: rgba(200,50,50,0.12);
-border-color: rgba(200,50,50,0.45);
-color: #e07070;
-}
-
-.voice-name { display: block; font-weight: 500; }
-.voice-sub  { display: block; font-size: 0.55rem; opacity: 0.55; margin-top: 2px; }
-
-/* ── Generate Button ── */
-.gen-btn {
-width: 100%;
-padding: 1.05rem;
-background: var(–red);
-border: none;
-border-radius: 3px;
-color: #f5ede8;
-font-family: var(–serif);
-font-size: 1.05rem;
-font-weight: 700;
-letter-spacing: 0.06em;
-cursor: pointer;
-transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-position: relative;
-overflow: hidden;
-}
-
-.gen-btn::after {
-content: ‘’;
+.char-count {
 position: absolute;
-inset: 0;
-background: linear-gradient(135deg, rgba(255,255,255,0.07) 0%, transparent 60%);
+bottom: 10px;
+right: 14px;
+font-size: 11px;
+color: var(–muted);
+opacity: 0.7;
 pointer-events: none;
 }
 
-.gen-btn:hover:not(:disabled) {
-background: #d93a3a;
-transform: translateY(-1px);
-box-shadow: 0 8px 28px rgba(200,50,50,0.35);
+/* ── Row layouts ── */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 540px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── Buttons ── */
+.btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 7px;
+border: none;
+border-radius: 50px;
+font-family: ‘Gowun Dodum’, sans-serif;
+font-size: 13px;
+letter-spacing: 0.05em;
+cursor: pointer;
+transition: all 0.22s ease;
+white-space: nowrap;
+font-weight: 400;
 }
 
-.gen-btn:active:not(:disabled) { transform: translateY(0); }
-.gen-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
-.pulse { animation: pulse 1.3s ease-in-out infinite; }
-
-/* ── Status panels ── */
-.panel {
-border-radius: 3px;
-padding: 1rem 1.1rem;
-animation: slideIn 0.35s ease both;
+.btn-primary {
+background: linear-gradient(135deg, var(–rose) 0%, var(–dusty) 100%);
+color: #fff;
+padding: 13px 32px;
+font-size: 14px;
+box-shadow: 0 4px 18px rgba(201,141,138,0.4);
+}
+.btn-primary:hover:not(:disabled) {
+transform: translateY(-2px);
+box-shadow: 0 8px 28px rgba(201,141,138,0.5);
+}
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:disabled {
+opacity: 0.55;
+cursor: not-allowed;
+transform: none;
 }
 
-@keyframes slideIn {
-from { opacity: 0; transform: translateY(6px); }
-to   { opacity: 1; transform: translateY(0); }
+.btn-ghost {
+background: var(–cream);
+color: var(–mauve);
+border: 1.5px solid var(–blush);
+padding: 10px 18px;
+}
+.btn-ghost:hover { background: var(–blush); border-color: var(–rose); }
+
+.btn-icon {
+background: var(–soft-lav);
+color: var(–mauve);
+border: none;
+padding: 10px 14px;
+border-radius: 12px;
+font-size: 13px;
+}
+.btn-icon:hover { background: var(–lavender); }
+
+.btn-download {
+background: linear-gradient(135deg, #b5d5c5 0%, #8db8a4 100%);
+color: #fff;
+padding: 12px 28px;
+box-shadow: 0 4px 16px rgba(141,184,164,0.4);
+}
+.btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(141,184,164,0.5); }
+
+/* ── Controls row ── */
+.controls-row {
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 12px;
+flex-wrap: wrap;
 }
 
-.panel-error {
-background: rgba(200,50,50,0.08);
-border: 1px solid rgba(200,50,50,0.22);
+/* ── Progress ── */
+.progress-wrap {
+margin-top: 6px;
+display: none;
+}
+.progress-wrap.visible { display: block; }
+
+.progress-bar-bg {
+height: 6px;
+background: var(–blush);
+border-radius: 99px;
+overflow: hidden;
 }
 
-.panel-error .panel-tag {
-font-family: var(–mono); font-size: 0.58rem; letter-spacing: 0.18em;
-color: #e07070; margin-bottom: 0.4rem;
+.progress-bar-fill {
+height: 100%;
+background: linear-gradient(90deg, var(–rose), var(–dusty));
+border-radius: 99px;
+transition: width 0.4s ease;
+width: 0%;
 }
 
-.panel-error .panel-msg { color: #c08080; font-size: 0.88rem; line-height: 1.55; }
-
-.panel-success {
-background: rgba(255,255,255,0.02);
-border: 1px solid var(–border);
+.progress-label {
+font-size: 11.5px;
+color: var(–muted);
+margin-top: 6px;
+display: flex;
+justify-content: space-between;
 }
 
-.panel-tag-ok {
-font-family: var(–mono); font-size: 0.58rem; letter-spacing: 0.18em;
-color: var(–text-dim); margin-bottom: 1rem;
+/* ── Activity Log ── */
+.log-box {
+background: var(–cream);
+border: 1.5px solid var(–blush);
+border-radius: 14px;
+padding: 14px 16px;
+max-height: 220px;
+overflow-y: auto;
+font-size: 12.5px;
+line-height: 1.7;
+color: var(–muted);
+scrollbar-width: thin;
+scrollbar-color: var(–rose) transparent;
+}
+
+.log-box::-webkit-scrollbar { width: 4px; }
+.log-box::-webkit-scrollbar-track { background: transparent; }
+.log-box::-webkit-scrollbar-thumb { background: var(–rose); border-radius: 99px; }
+
+.log-entry {
+padding: 3px 0;
+border-bottom: 1px dashed rgba(232,180,176,0.3);
+animation: fadeIn 0.3s ease;
+display: flex;
+gap: 10px;
+align-items: flex-start;
+}
+.log-entry:last-child { border-bottom: none; }
+
+.log-time { color: var(–rose); font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+.log-msg { flex: 1; }
+.log-ok { color: #8db8a4; }
+.log-err { color: #c97b7b; }
+.log-warn { color: #c9b07b; }
+.log-info { color: var(–muted); }
+
+/* ── Result area ── */
+.result-area {
+display: none;
+text-align: center;
+padding: 10px 0 4px;
+}
+.result-area.visible { display: block; }
+
+.result-title {
+font-family: ‘DM Serif Display’, serif;
+font-style: italic;
+font-size: 18px;
+color: var(–mauve);
+margin-bottom: 14px;
+}
+
+.result-wave {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 3px;
+margin-bottom: 18px;
+}
+.wave-bar {
+width: 3px;
+border-radius: 99px;
+background: var(–rose);
+animation: wavePulse 1.2s ease-in-out infinite;
+}
+@keyframes wavePulse {
+0%, 100% { height: 6px; opacity: 0.5; }
+50% { height: 24px; opacity: 1; }
 }
 
 audio {
 width: 100%;
-height: 34px;
-display: block;
-margin-bottom: 0.9rem;
-filter: hue-rotate(330deg) saturate(0.5) brightness(0.9);
-border-radius: 2px;
+border-radius: 12px;
+accent-color: var(–dusty);
+margin-bottom: 14px;
 }
 
-.dl-btn {
-width: 100%;
-padding: 0.75rem;
-background: transparent;
-border: 1px solid rgba(200,50,50,0.35);
-border-radius: 3px;
-color: #e07070;
-font-family: var(–mono);
-font-size: 0.65rem;
-letter-spacing: 0.18em;
-cursor: pointer;
-transition: background 0.18s, border-color 0.18s;
+/* ── Spinner ── */
+.spinner {
+display: inline-block;
+width: 14px;
+height: 14px;
+border: 2px solid rgba(255,255,255,0.4);
+border-top-color: #fff;
+border-radius: 50%;
+animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Animations ── */
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(18px); }
+to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+from { opacity: 0; }
+to   { opacity: 1; }
 }
 
-.dl-btn:hover {
-background: rgba(200,50,50,0.1);
-border-color: rgba(200,50,50,0.6);
-}
+/* Stagger cards */
+.card:nth-child(1) { animation-delay: 0.05s; }
+.card:nth-child(2) { animation-delay: 0.12s; }
+.card:nth-child(3) { animation-delay: 0.19s; }
+.card:nth-child(4) { animation-delay: 0.26s; }
+.card:nth-child(5) { animation-delay: 0.33s; }
 
 /* ── Footer ── */
 .footer {
 text-align: center;
-margin-top: 3rem;
-font-family: var(–mono);
-font-size: 0.55rem;
-letter-spacing: 0.14em;
-color: #222;
+margin-top: 42px;
+font-size: 11.5px;
+color: var(–rose);
+letter-spacing: 0.1em;
+opacity: 0.7;
 }
+
+/* ── Toast ── */
+.toast {
+position: fixed;
+bottom: 28px;
+right: 28px;
+background: var(–ink);
+color: var(–cream);
+padding: 10px 20px;
+border-radius: 50px;
+font-size: 13px;
+z-index: 999;
+opacity: 0;
+transform: translateY(10px);
+transition: all 0.3s ease;
+pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── Pulse badge ── */
+.chunk-badge {
+display: inline-block;
+background: var(–soft-lav);
+color: var(–mauve);
+font-size: 11px;
+padding: 2px 10px;
+border-radius: 99px;
+margin-left: 8px;
+vertical-align: middle;
+letter-spacing: 0.05em;
+}
+
+.api-key-icon {
+cursor: pointer;
+padding: 10px 14px;
+background: var(–soft-lav);
+border-radius: 10px;
+font-size: 14px;
+border: none;
+transition: background 0.2s;
+}
+.api-key-icon:hover { background: var(–lavender); }
 </style>
 
 </head>
 <body>
-<div class="wrap">
+
+<!-- Floating petals -->
+
+<div class="petal" style="left:8%;animation-duration:14s;animation-delay:0s">✿</div>
+<div class="petal" style="left:22%;animation-duration:18s;animation-delay:3s">❀</div>
+<div class="petal" style="left:42%;animation-duration:12s;animation-delay:6s">✦</div>
+<div class="petal" style="left:64%;animation-duration:16s;animation-delay:1.5s">✿</div>
+<div class="petal" style="left:80%;animation-duration:20s;animation-delay:8s">❀</div>
+<div class="petal" style="left:91%;animation-duration:11s;animation-delay:4s">✦</div>
+
+<div class="wrapper">
+
+  <!-- Header -->
 
   <header class="header">
-    <p class="eyebrow">Gemini TTS · 한국어 음성 합성</p>
-    <h1>한국어<br/>음성 합성</h1>
-    <p class="subtitle">Korean Text-to-Speech via Google Gemini</p>
+    <div class="header-eyebrow">✦ AI Audio Studio ✦</div>
+    <h1>K-Novel <em>Narrator</em></h1>
+    <div class="header-sub">Transform your webnovel chapters into lush, narrated audio</div>
+    <div class="divider">❀</div>
   </header>
 
-  <div class="divider">
-    <div class="divider-line"></div>
-    <div class="divider-dot"></div>
-    <div class="divider-line rev"></div>
+  <!-- API Key -->
+
+  <div class="card">
+    <div class="card-label">🗝️ Gemini API Key</div>
+    <div class="api-row">
+      <input type="password" id="apiKey" placeholder="Paste your Gemini API key here…" autocomplete="off" />
+      <button class="api-key-icon" id="toggleKey" title="Show/hide key">👁</button>
+      <button class="btn btn-ghost" id="saveKey" style="flex-shrink:0">Save</button>
+    </div>
+    <div style="font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.6">
+      Stored in <code style="background:var(--cream);padding:1px 5px;border-radius:4px;font-size:11px">localStorage</code> — never sent anywhere except Google's API ✦
+    </div>
   </div>
 
-  <div class="form">
+  <!-- Voice & Style -->
 
-```
-<!-- API Key -->
-<div class="field">
-  <label class="label">Google API Key</label>
-  <div class="key-wrap">
-    <input id="apiKey" class="input" type="password" placeholder="AIzaSy..." autocomplete="off" />
-    <button class="toggle-key" id="toggleKey" onclick="toggleKeyVisibility()">표시</button>
-  </div>
-</div>
-
-<!-- Korean Text -->
-<div class="field">
-  <label class="label">
-    한국어 텍스트
-    <span class="char-count" id="charCount">0 자</span>
-  </label>
-  <textarea id="koreanText" placeholder="여기에 한국어 텍스트를 입력하세요..." oninput="updateCount()"></textarea>
-</div>
-
-<!-- Style Instructions -->
-<div class="field">
-  <label class="label">
-    발화 스타일 지침
-    <span class="optional">(선택사항)</span>
-  </label>
-  <input id="styleInstr" class="input" type="text" placeholder="예: 천천히 차분하게 읽어주세요, 뉴스 아나운서 스타일로, 감정적으로..." />
-</div>
-
-<!-- Voice -->
-<div class="field">
-  <label class="label">음성 선택</label>
-  <div class="voices" id="voiceGrid"></div>
-</div>
-
-<!-- Generate -->
-<button class="gen-btn" id="genBtn" onclick="generate()">음성 생성 →</button>
-
-<!-- Output area -->
-<div id="outputArea"></div>
-```
-
+  <div class="card">
+    <div class="card-label">🎙️ Voice &amp; Style</div>
+    <div class="two-col">
+      <div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px">Narrator Voice</div>
+        <select id="voiceSelect">
+          <option value="Aoede">Aoede — Breezy &amp; Warm</option>
+          <option value="Zephyr">Zephyr — Bright &amp; Clear</option>
+          <option value="Puck">Puck — Upbeat &amp; Playful</option>
+          <option value="Charon">Charon — Steady &amp; Calm</option>
+          <option value="Kore" selected>Kore — Firm &amp; Elegant</option>
+          <option value="Fenrir">Fenrir — Intense &amp; Dramatic</option>
+          <option value="Leda">Leda — Youthful &amp; Sweet</option>
+          <option value="Orus">Orus — Deep &amp; Authoritative</option>
+          <option value="Schedar">Schedar — Rich &amp; Velvety</option>
+          <option value="Orbit">Orbit — Smooth &amp; Measured</option>
+          <option value="Achernar">Achernar — Soft &amp; Gentle</option>
+          <option value="Gacrux">Gacrux — Mature &amp; Warm</option>
+        </select>
+      </div>
+      <div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px">Emotion / Style Prompt</div>
+        <input type="text" id="stylePrompt" placeholder="e.g. slow, dramatic, whispery, tender…" />
+      </div>
+    </div>
   </div>
 
-  <p class="footer">API KEY IS USED LOCALLY · NEVER TRANSMITTED TO ANY SERVER EXCEPT GOOGLE</p>
+  <!-- Text Input -->
+
+  <div class="card">
+    <div class="card-label">
+      📖 Novel Text
+      <span class="chunk-badge" id="chunkInfo">0 chunks</span>
+    </div>
+    <div class="text-area-wrapper">
+      <textarea id="novelText" placeholder="Paste your webnovel chapter here… Long chapters are automatically split into 800-character narration blocks and stitched back together seamlessly."></textarea>
+      <span class="char-count" id="charCount">0 chars</span>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost" id="pasteBtn">📋 Paste from Clipboard</button>
+      <button class="btn btn-ghost" id="clearBtn">✕ Clear</button>
+    </div>
+  </div>
+
+  <!-- Generate -->
+
+  <div class="card">
+    <div class="card-label">⚙️ Generation</div>
+    <div class="controls-row">
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6">
+        Chunks are fetched sequentially with<br/>exponential backoff &amp; stitched into one MP3
+      </div>
+      <button class="btn btn-primary" id="generateBtn">
+        ✦ Narrate Chapter
+      </button>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div style="height:10px"></div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-label">
+        <span id="progressText">Processing…</span>
+        <span id="progressPct">0%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result -->
+
+  <div class="card" id="resultCard" style="display:none">
+    <div class="card-label">🎵 Your Narration</div>
+    <div class="result-area visible">
+      <div class="result-title">Your chapter is ready ✦</div>
+      <div class="result-wave" id="waveViz">
+        <div class="wave-bar" style="animation-delay:0s;height:8px"></div>
+        <div class="wave-bar" style="animation-delay:0.1s;height:16px"></div>
+        <div class="wave-bar" style="animation-delay:0.2s;height:22px"></div>
+        <div class="wave-bar" style="animation-delay:0.3s;height:14px"></div>
+        <div class="wave-bar" style="animation-delay:0.4s;height:22px"></div>
+        <div class="wave-bar" style="animation-delay:0.5s;height:16px"></div>
+        <div class="wave-bar" style="animation-delay:0.6s;height:8px"></div>
+      </div>
+      <audio id="audioPlayer" controls></audio>
+      <button class="btn btn-download" id="downloadBtn">⬇ Download MP3</button>
+    </div>
+  </div>
+
+  <!-- Activity Log -->
+
+  <div class="card">
+    <div class="card-label">📋 Activity Log</div>
+    <div class="log-box" id="logBox">
+      <div class="log-entry">
+        <span class="log-time">--:--</span>
+        <span class="log-msg log-info">Waiting for your chapter… Paste some text and hit Narrate ✦</span>
+      </div>
+    </div>
+    <div style="margin-top:10px;text-align:right">
+      <button class="btn btn-ghost" id="clearLog" style="font-size:11.5px;padding:7px 14px">Clear Log</button>
+    </div>
+  </div>
+
+  <footer class="footer">✦ K-Novel Narrator · Powered by Gemini 2.5 Pro TTS ✦</footer>
 </div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-const VOICES = [
-  { id: "Kore",   kr: "코레",   sub: "Warm" },
-  { id: "Aoede",  kr: "아오에데", sub: "Bright" },
-  { id: "Charon", kr: "카론",   sub: "Deep" },
-  { id: "Fenrir", kr: "펜리르", sub: "Bold" },
-  { id: "Puck",   kr: "퍽",    sub: "Lively" },
-];
+/* ════════════════════════════════════════════
+   Constants & State
+════════════════════════════════════════════ */
+const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-tts:generateContent';
+const SAMPLE_RATE = 24000;
+const CHUNK_SIZE  = 800;
 
-let selectedVoice = "Kore";
-let audioBlob = null;
+let mp3Blob = null;
+let isRunning = false;
 
-// Build voice buttons
-const grid = document.getElementById("voiceGrid");
-VOICES.forEach(v => {
-  const btn = document.createElement("button");
-  btn.className = "voice-btn" + (v.id === selectedVoice ? " active" : "");
-  btn.id = "voice_" + v.id;
-  btn.innerHTML = `<span class="voice-name">${v.kr}</span><span class="voice-sub">${v.id} · ${v.sub}</span>`;
-  btn.onclick = () => selectVoice(v.id);
-  grid.appendChild(btn);
+/* ════════════════════════════════════════════
+   Init: Load saved key
+════════════════════════════════════════════ */
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem('knv_api_key');
+  if (saved) {
+    document.getElementById('apiKey').value = saved;
+    log('info', 'Loaded saved API key from localStorage');
+  }
+  updateChunkInfo();
 });
 
-function selectVoice(id) {
-  document.querySelectorAll(".voice-btn").forEach(b => b.classList.remove("active"));
-  document.getElementById("voice_" + id).classList.add("active");
-  selectedVoice = id;
+/* ════════════════════════════════════════════
+   Utility: Logging
+════════════════════════════════════════════ */
+function log(type, msg) {
+  const box = document.getElementById('logBox');
+  const now = new Date();
+  const time = now.toTimeString().slice(0,8);
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+
+  const icons = { ok: '✓', err: '✗', warn: '⚠', info: '·' };
+  const icon  = icons[type] || '·';
+
+  entry.innerHTML = `
+    <span class="log-time">${time}</span>
+    <span class="log-msg log-${type}">${icon} ${escHtml(msg)}</span>`;
+  box.appendChild(entry);
+  box.scrollTop = box.scrollHeight;
 }
 
-function updateCount() {
-  const len = document.getElementById("koreanText").value.length;
-  const el = document.getElementById("charCount");
-  el.textContent = len.toLocaleString() + " 자";
-  el.classList.toggle("warn", len > 4000);
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-function toggleKeyVisibility() {
-  const inp = document.getElementById("apiKey");
-  const btn = document.getElementById("toggleKey");
-  if (inp.type === "password") { inp.type = "text"; btn.textContent = "숨기기"; }
-  else { inp.type = "password"; btn.textContent = "표시"; }
+function showToast(msg, dur = 2600) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
 }
 
-function showError(msg) {
-  document.getElementById("outputArea").innerHTML = `
-    <div class="panel panel-error">
-      <div class="panel-tag">ERROR</div>
-      <div class="panel-msg">${msg}</div>
-    </div>`;
-}
+/* ════════════════════════════════════════════
+   API Key Save / Toggle
+════════════════════════════════════════════ */
+document.getElementById('saveKey').addEventListener('click', () => {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) { showToast('⚠ Please enter a key first'); return; }
+  localStorage.setItem('knv_api_key', key);
+  log('ok', 'API key saved to localStorage');
+  showToast('🗝️ Key saved!');
+});
 
-function showOutput(blob) {
-  const url = URL.createObjectURL(blob);
-  const voiceLabel = VOICES.find(v => v.id === selectedVoice);
-  document.getElementById("outputArea").innerHTML = `
-    <div class="panel panel-success">
-      <div class="panel-tag-ok">✓ 생성 완료 · ${voiceLabel.kr} (${voiceLabel.id})</div>
-      <audio id="player" controls src="${url}"></audio>
-      <button class="dl-btn" id="dlBtn">↓ &nbsp; DOWNLOAD .WAV</button>
-    </div>`;
-  document.getElementById("dlBtn").onclick = () => {
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "korean_tts.wav";
-    a.click();
-  };
-}
+document.getElementById('toggleKey').addEventListener('click', () => {
+  const inp = document.getElementById('apiKey');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+  document.getElementById('toggleKey').textContent = inp.type === 'password' ? '👁' : '🙈';
+});
 
-function pcmToWav(base64, sampleRate=24000, channels=1, bits=16) {
-  const raw = atob(base64);
-  const pcm = new Uint8Array(raw.length);
-  for (let i = 0; i < raw.length; i++) pcm[i] = raw.charCodeAt(i);
-  const dataLen = pcm.length;
-  const buf = new ArrayBuffer(44 + dataLen);
-  const v = new DataView(buf);
-  const s = (o, str) => [...str].forEach((c,i) => v.setUint8(o+i, c.charCodeAt(0)));
-  const byteRate = sampleRate * channels * bits / 8;
-  const blockAlign = channels * bits / 8;
-  s(0,"RIFF"); v.setUint32(4, 36+dataLen, true); s(8,"WAVE");
-  s(12,"fmt "); v.setUint32(16,16,true); v.setUint16(20,1,true);
-  v.setUint16(22,channels,true); v.setUint32(24,sampleRate,true);
-  v.setUint32(28,byteRate,true); v.setUint16(32,blockAlign,true);
-  v.setUint16(34,bits,true); s(36,"data"); v.setUint32(40,dataLen,true);
-  new Uint8Array(buf,44).set(pcm);
-  return buf;
-}
-
-async function generate() {
-  const apiKey = document.getElementById("apiKey").value.trim();
-  const text   = document.getElementById("koreanText").value.trim();
-  const style  = document.getElementById("styleInstr").value.trim();
-
-  if (!apiKey) return showError("API 키를 입력하세요.");
-  if (!text)   return showError("한국어 텍스트를 입력하세요.");
-
-  const btn = document.getElementById("genBtn");
-  btn.disabled = true;
-  btn.innerHTML = '<span class="pulse">생성 중...</span>';
-  document.getElementById("outputArea").innerHTML = "";
-
-  const prompt = style
-    ? `다음 지침에 따라 텍스트를 읽어주세요: ${style}\n\n텍스트: ${text}`
-    : text;
-
+/* ════════════════════════════════════════════
+   Paste & Clear
+════════════════════════════════════════════ */
+document.getElementById('pasteBtn').addEventListener('click', async () => {
   try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseModalities: ["AUDIO"],
-            speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: selectedVoice } }
-            }
-          }
-        })
-      }
-    );
+    const text = await navigator.clipboard.readText();
+    document.getElementById('novelText').value = text;
+    updateChunkInfo();
+    log('ok', `Pasted ${text.length.toLocaleString()} characters from clipboard`);
+    showToast('📋 Pasted!');
+  } catch (e) {
+    log('err', 'Clipboard access denied — please paste manually (Ctrl+V)');
+    showToast('⚠ Clipboard access denied');
+  }
+});
 
-    const data = await res.json();
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('novelText').value = '';
+  updateChunkInfo();
+  log('info', 'Text cleared');
+});
 
-    if (!res.ok) {
-      const msg = data?.error?.message || `HTTP ${res.status}`;
-      throw new Error(msg);
+document.getElementById('clearLog').addEventListener('click', () => {
+  document.getElementById('logBox').innerHTML = '';
+  log('info', 'Log cleared');
+});
+
+/* ════════════════════════════════════════════
+   Char count & chunk info
+════════════════════════════════════════════ */
+document.getElementById('novelText').addEventListener('input', updateChunkInfo);
+
+function updateChunkInfo() {
+  const txt  = document.getElementById('novelText').value;
+  const len  = txt.length;
+  document.getElementById('charCount').textContent = len.toLocaleString() + ' chars';
+  const n = smartChunk(txt).length;
+  const badge = document.getElementById('chunkInfo');
+  badge.textContent = n + (n === 1 ? ' chunk' : ' chunks');
+}
+
+/* ════════════════════════════════════════════
+   Smart Chunker
+════════════════════════════════════════════ */
+function smartChunk(text, maxLen = CHUNK_SIZE) {
+  const chunks = [];
+  let remaining = text.trim();
+  if (!remaining) return chunks;
+
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLen) {
+      chunks.push(remaining);
+      break;
     }
 
-    const audioB64 = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-    if (!audioB64) throw new Error("응답에 오디오 데이터가 없습니다. 모델 또는 API 응답을 확인하세요.");
+    // Search for best sentence-break within the window
+    let breakAt = maxLen;
+    let best = -1;
 
-    const wavBuf = pcmToWav(audioB64);
-    const blob = new Blob([wavBuf], { type: "audio/wav" });
-    showOutput(blob);
+    // Scan backwards from maxLen for sentence-ending punctuation
+    for (let i = Math.min(maxLen - 1, remaining.length - 1); i >= maxLen - 250 && i >= 0; i--) {
+      if (/[.!?。！？…]/.test(remaining[i])) {
+        best = i + 1;
+        break;
+      }
+    }
 
-  } catch (err) {
-    showError(err.message || "알 수 없는 오류가 발생했습니다.");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = "음성 생성 →";
+    if (best > 50) {
+      breakAt = best;
+    } else {
+      // Fall back to last whitespace
+      const ws = remaining.lastIndexOf(' ', maxLen);
+      if (ws > maxLen - 120 && ws > 0) breakAt = ws;
+    }
+
+    chunks.push(remaining.substring(0, breakAt).trim());
+    remaining = remaining.substring(breakAt).trim();
+  }
+
+  return chunks;
+}
+
+/* ════════════════════════════════════════════
+   Progress helpers
+════════════════════════════════════════════ */
+function setProgress(done, total) {
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent   = pct + '%';
+  document.getElementById('progressText').textContent  = `Chunk ${done} / ${total}`;
+}
+
+/* ════════════════════════════════════════════
+   Exponential Backoff Fetch
+════════════════════════════════════════════ */
+async function fetchWithBackoff(url, opts, maxRetries = 4) {
+  let delay = 1200;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const res = await fetch(url, opts);
+      if (res.status === 429 || res.status >= 500) {
+        const errText = await res.text();
+        if (attempt === maxRetries) throw new Error(`HTTP ${res.status}: ${errText.slice(0,120)}`);
+        log('warn', `Attempt ${attempt} → HTTP ${res.status}. Retrying in ${delay/1000}s…`);
+        await sleep(delay);
+        delay *= 2;
+        continue;
+      }
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errText.slice(0,200)}`);
+      }
+      return res;
+    } catch (e) {
+      if (attempt === maxRetries) throw e;
+      if (e.message.startsWith('HTTP')) throw e;
+      log('warn', `Network error (attempt ${attempt}): ${e.message}. Retrying…`);
+      await sleep(delay);
+      delay *= 2;
+    }
   }
 }
 
-// Enter key on single-line inputs
-document.addEventListener("keydown", e => {
-  if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") generate();
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ════════════════════════════════════════════
+   Gemini TTS: single chunk → Int16Array (PCM)
+════════════════════════════════════════════ */
+async function fetchChunkAudio(apiKey, text, voiceName, stylePrompt, chunkIdx) {
+  const systemInstruction = stylePrompt
+    ? `You are a professional audiobook narrator. Read the following text in a ${stylePrompt} tone. Narrate naturally with appropriate pacing, emotion, and pauses.`
+    : 'You are a professional audiobook narrator. Read the following text naturally with appropriate pacing, emotion, and pauses.';
+
+  const body = {
+    contents: [{
+      parts: [{ text: text }]
+    }],
+    system_instruction: {
+      parts: [{ text: systemInstruction }]
+    },
+    generationConfig: {
+      responseModalities: ['AUDIO'],
+      speechConfig: {
+        voiceConfig: {
+          prebuiltVoiceConfig: {
+            voiceName: voiceName
+          }
+        }
+      }
+    }
+  };
+
+  const url = `${GEMINI_ENDPOINT}?key=${encodeURIComponent(apiKey)}`;
+
+  log('info', `Chunk ${chunkIdx}: requesting audio (${text.length} chars)…`);
+
+  const res = await fetchWithBackoff(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  const json = await res.json();
+
+  // Extract base64 PCM audio
+  const parts = json?.candidates?.[0]?.content?.parts;
+  if (!parts) throw new Error(`Chunk ${chunkIdx}: No parts in response. ${JSON.stringify(json).slice(0,200)}`);
+
+  const audioPart = parts.find(p => p.inlineData?.mimeType?.startsWith('audio/'));
+  if (!audioPart) throw new Error(`Chunk ${chunkIdx}: No audio part found. Keys: ${parts.map(p=>Object.keys(p)).join(', ')}`);
+
+  const b64 = audioPart.inlineData.data;
+  const mime = audioPart.inlineData.mimeType; // e.g. "audio/pcm;rate=24000"
+  log('ok', `Chunk ${chunkIdx}: received ${mime} (${Math.round(b64.length * 0.75 / 1024)} KB)`);
+
+  // Decode base64 → binary → Int16Array
+  const binary = atob(b64);
+  const bytes   = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+  return new Int16Array(bytes.buffer);
+}
+
+/* ════════════════════════════════════════════
+   Stitch PCM arrays
+════════════════════════════════════════════ */
+function stitchPCM(arrays) {
+  const totalLen = arrays.reduce((s, a) => s + a.length, 0);
+  const result   = new Int16Array(totalLen);
+  let offset = 0;
+  for (const arr of arrays) {
+    result.set(arr, offset);
+    offset += arr.length;
+  }
+  return result;
+}
+
+/* ════════════════════════════════════════════
+   Encode PCM → MP3 via lamejs
+════════════════════════════════════════════ */
+function encodeMp3(pcmData, sampleRate = SAMPLE_RATE, bitrate = 128) {
+  log('info', `Encoding ${(pcmData.length / sampleRate).toFixed(1)}s of audio to MP3 (${bitrate}kbps)…`);
+
+  const encoder   = new lamejs.Mp3Encoder(1, sampleRate, bitrate);
+  const blockSize = 1152;
+  const mp3Parts  = [];
+
+  for (let i = 0; i < pcmData.length; i += blockSize) {
+    const chunk   = pcmData.subarray(i, i + blockSize);
+    const encoded = encoder.encodeBuffer(chunk);
+    if (encoded.length > 0) mp3Parts.push(new Uint8Array(encoded));
+  }
+
+  const flushed = encoder.flush();
+  if (flushed.length > 0) mp3Parts.push(new Uint8Array(flushed));
+
+  // Merge all Uint8Arrays into one blob
+  const totalBytes = mp3Parts.reduce((s, a) => s + a.length, 0);
+  const merged     = new Uint8Array(totalBytes);
+  let off = 0;
+  for (const part of mp3Parts) { merged.set(part, off); off += part.length; }
+
+  log('ok', `MP3 encoded: ${(totalBytes / 1024).toFixed(0)} KB`);
+  return new Blob([merged], { type: 'audio/mp3' });
+}
+
+/* ════════════════════════════════════════════
+   Main Generate Handler
+════════════════════════════════════════════ */
+document.getElementById('generateBtn').addEventListener('click', generate);
+
+async function generate() {
+  if (isRunning) return;
+
+  const apiKey     = document.getElementById('apiKey').value.trim();
+  const text       = document.getElementById('novelText').value.trim();
+  const voiceName  = document.getElementById('voiceSelect').value;
+  const stylePrompt = document.getElementById('stylePrompt').value.trim();
+
+  if (!apiKey) { showToast('⚠ Please enter your API key'); log('err', 'No API key provided'); return; }
+  if (!text)   { showToast('⚠ Please paste some text first'); log('err', 'No text to narrate'); return; }
+  if (typeof lamejs === 'undefined') { log('err', 'lamejs not loaded — check CDN connection'); return; }
+
+  const chunks = smartChunk(text);
+  if (chunks.length === 0) { showToast('⚠ No text chunks generated'); return; }
+
+  isRunning = true;
+  mp3Blob   = null;
+
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Narrating…';
+
+  document.getElementById('resultCard').style.display = 'none';
+  const progWrap = document.getElementById('progressWrap');
+  progWrap.classList.add('visible');
+  setProgress(0, chunks.length);
+
+  log('info', `Starting narration: ${chunks.length} chunk(s), voice "${voiceName}"${stylePrompt ? ', style: '+stylePrompt : ''}`);
+
+  const pcmArrays = [];
+
+  try {
+    for (let i = 0; i < chunks.length; i++) {
+      setProgress(i, chunks.length);
+      const pcm = await fetchChunkAudio(apiKey, chunks[i], voiceName, stylePrompt, i + 1);
+      pcmArrays.push(pcm);
+      setProgress(i + 1, chunks.length);
+      // Small breathing gap between chunks to avoid rate-limit hammering
+      if (i < chunks.length - 1) await sleep(350);
+    }
+
+    log('info', 'All chunks received — stitching PCM…');
+    const fullPcm = stitchPCM(pcmArrays);
+
+    mp3Blob = encodeMp3(fullPcm);
+
+    const url = URL.createObjectURL(mp3Blob);
+    const player = document.getElementById('audioPlayer');
+    player.src = url;
+
+    document.getElementById('resultCard').style.display = 'block';
+    document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    log('ok', `✦ Narration complete! Total duration ≈ ${(fullPcm.length / SAMPLE_RATE).toFixed(1)}s`);
+    showToast('✦ Narration ready!', 3000);
+
+  } catch (err) {
+    log('err', 'Generation failed: ' + err.message);
+    showToast('✗ Error — see log for details', 3500);
+    console.error(err);
+  } finally {
+    isRunning = false;
+    btn.disabled = false;
+    btn.innerHTML = '✦ Narrate Chapter';
+    progWrap.classList.remove('visible');
+  }
+}
+
+/* ════════════════════════════════════════════
+   Download
+════════════════════════════════════════════ */
+document.getElementById('downloadBtn').addEventListener('click', () => {
+  if (!mp3Blob) { showToast('No audio to download yet'); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(mp3Blob);
+  const timestamp = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+  a.download = `k-novel-narration-${timestamp}.mp3`;
+  a.click();
+  log('ok', `Downloaded: ${a.download}`);
+  showToast('⬇ Download started!');
 });
 </script>
 
