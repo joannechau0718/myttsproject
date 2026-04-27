@@ -4,1116 +4,1478 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>♡ dreamscript · narrate softly</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Quicksand:wght@400;500;600;700&family=Caveat:wght@400;600&display=swap" rel="stylesheet" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.0/lame.min.js"></script>
+<title>Bindery — Markdown to EPUB</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 <style>
   :root {
-    --lilac-50:  #f7f2ff;
-    --lilac-100: #ede3ff;
-    --lilac-200: #ddc8fb;
-    --lilac-300: #c8b0f0;
-    --lilac-400: #a98ad9;
-    --lilac-500: #8b6dc1;
-    --lilac-700: #5a4286;
+    --paper:        #f4ece0;
+    --paper-deep:   #ebe0cc;
+    --paper-shadow: #d9c9ae;
+    --ink:          #1c1612;
+    --ink-soft:     #463a30;
+    --ink-faint:    #8a7a66;
+    --rule:         #c9b89a;
+    --oxblood:      #6e2229;
+    --oxblood-deep: #4a161b;
+    --gilt:         #9a7530;
+    --moss:         #4a5a3a;
+    --error:        #8a2a1a;
 
 ```
---mint-50:  #f0fbf5;
---mint-100: #d9f3e3;
---mint-200: #bce9d0;
---mint-300: #9bd9b6;
---mint-400: #74c598;
---mint-500: #4fa97a;
-
---peach:    #ffd9d4;
---butter:   #fff3c4;
---cream:    #fdfaf3;
---ink:      #4b3b6b;
---ink-soft: #7a6a98;
-
---shadow-lilac: 0 12px 40px -12px rgba(168, 137, 217, 0.45);
---shadow-mint:  0 12px 40px -12px rgba(116, 197, 152, 0.45);
---shadow-soft:  0 6px 24px -8px rgba(74, 49, 110, 0.18);
+--serif: "Fraunces", "Iowan Old Style", "Palatino", Georgia, serif;
+--mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 ```
 
 }
 
-- { box-sizing: border-box; }
+- { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
-margin: 0;
-padding: 0;
+html, body { background: var(–paper); color: var(–ink); }
+
+body {
+font-family: var(–serif);
+font-size: 17px;
+line-height: 1.55;
 min-height: 100vh;
-color: var(–ink);
-font-family: ‘Quicksand’, sans-serif;
-font-weight: 500;
-background:
-radial-gradient(circle at 12% 14%, #ffe6f4 0%, transparent 38%),
-radial-gradient(circle at 88% 22%, #d6f3e3 0%, transparent 42%),
-radial-gradient(circle at 70% 88%, #e7d9ff 0%, transparent 45%),
-linear-gradient(160deg, #faf3ff 0%, #f4fbf6 100%);
+/* subtle paper texture via layered noise */
+background-image:
+radial-gradient(1200px 600px at 80% -10%, rgba(110,34,41,0.06), transparent 60%),
+radial-gradient(900px 500px at -10% 110%, rgba(154,117,48,0.07), transparent 60%),
+url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>”);
 background-attachment: fixed;
 }
 
-/* dreamy grain overlay */
-body::before {
-content: “”;
-position: fixed;
-inset: 0;
-pointer-events: none;
-opacity: 0.35;
-mix-blend-mode: multiply;
-background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.45  0 0 0 0 0.35  0 0 0 0 0.55  0 0 0 0.07 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>”);
-z-index: 0;
-}
+::selection { background: var(–oxblood); color: var(–paper); }
 
-/* floating sparkles */
-.sparkles {
-position: fixed;
-inset: 0;
-pointer-events: none;
-z-index: 1;
-overflow: hidden;
-}
-.sparkle {
-position: absolute;
-font-size: 14px;
-color: var(–lilac-300);
-opacity: 0.5;
-animation: drift 22s linear infinite;
-text-shadow: 0 0 8px rgba(200, 176, 240, 0.6);
-}
-.sparkle:nth-child(2) { color: var(–mint-300); animation-duration: 30s; font-size: 12px; }
-.sparkle:nth-child(3) { color: #f5b4d3;       animation-duration: 26s; font-size: 16px; }
-.sparkle:nth-child(4) { color: var(–lilac-200); animation-duration: 35s; }
-.sparkle:nth-child(5) { color: var(–mint-200); animation-duration: 28s; font-size: 18px; }
-
-@keyframes drift {
-0%   { transform: translate(0, 100vh) rotate(0deg); }
-100% { transform: translate(20px, -10vh) rotate(360deg); }
-}
-
-.wrap {
-position: relative;
-z-index: 2;
-max-width: 980px;
+/* ––––– Layout ––––– */
+.frame {
+max-width: 1240px;
 margin: 0 auto;
-padding: 50px 28px 80px;
+padding: 56px 40px 80px;
 }
 
-/* header */
-header {
-text-align: center;
-margin-bottom: 44px;
+/* ––––– Masthead ––––– */
+.masthead {
+display: flex;
+align-items: flex-end;
+justify-content: space-between;
+padding-bottom: 28px;
+border-bottom: 1px solid var(–ink);
+position: relative;
 }
-.crown {
-font-family: ‘Caveat’, cursive;
-font-size: 22px;
-color: var(–lilac-400);
-letter-spacing: 1px;
-margin-bottom: 6px;
+.masthead::after {
+content: “”;
+position: absolute;
+left: 0; right: 0;
+bottom: -5px;
+height: 1px;
+background: var(–ink);
 }
-h1 {
-font-family: ‘Fraunces’, serif;
-font-weight: 400;
+
+.brand {
+display: flex;
+align-items: baseline;
+gap: 14px;
+}
+.brand-mark {
+width: 44px; height: 44px;
+border: 1.5px solid var(–ink);
+display: grid; place-items: center;
+font-family: var(–serif);
+font-weight: 700;
+font-size: 24px;
 font-style: italic;
-font-size: clamp(46px, 8vw, 84px);
-margin: 0;
+background: var(–paper);
+box-shadow: 3px 3px 0 var(–ink);
+transform: translateY(2px);
+}
+.brand-name {
+font-family: var(–serif);
+font-size: 44px;
+font-weight: 500;
+font-variation-settings: “opsz” 144, “SOFT” 30;
 letter-spacing: -0.02em;
-background: linear-gradient(120deg, var(–lilac-500) 0%, var(–mint-500) 60%, #e08fb8 100%);
--webkit-background-clip: text;
-background-clip: text;
-color: transparent;
 line-height: 1;
 }
-.tag {
-margin-top: 14px;
-font-family: ‘Fraunces’, serif;
+.brand-name em {
 font-style: italic;
-font-size: 17px;
+font-weight: 400;
+color: var(–oxblood);
+}
+.masthead-meta {
+text-align: right;
+font-family: var(–mono);
+font-size: 11px;
 color: var(–ink-soft);
-letter-spacing: 0.02em;
+text-transform: uppercase;
+letter-spacing: 0.14em;
+line-height: 1.7;
 }
-.tag::before, .tag::after {
-content: “✿”;
-color: var(–mint-300);
-margin: 0 12px;
-font-style: normal;
-}
-
-/* card style */
-.card {
-background: rgba(255, 255, 255, 0.78);
-backdrop-filter: blur(8px);
--webkit-backdrop-filter: blur(8px);
-border: 1.5px solid rgba(221, 200, 251, 0.55);
-border-radius: 28px;
-padding: 28px 30px;
-box-shadow: var(–shadow-soft);
-margin-bottom: 22px;
-position: relative;
-}
-.card::before {
-content: “”;
-position: absolute;
-inset: 5px;
-border: 1px dashed rgba(168, 137, 217, 0.22);
-border-radius: 23px;
-pointer-events: none;
-}
-
-.card h2 {
-font-family: ‘Fraunces’, serif;
+.masthead-meta strong {
+color: var(–ink);
 font-weight: 500;
+}
+
+.tagline {
+font-family: var(–serif);
 font-style: italic;
-font-size: 24px;
-margin: 0 0 18px;
-color: var(–lilac-700);
+font-weight: 300;
+font-size: 19px;
+color: var(–ink-soft);
+margin-top: 18px;
+max-width: 560px;
+font-variation-settings: “opsz” 144;
+}
+
+/* ––––– Section labels ––––– */
+.section-label {
 display: flex;
 align-items: center;
-gap: 10px;
-}
-.card h2 .num {
-font-family: ‘Caveat’, cursive;
-font-size: 28px;
-color: var(–mint-500);
-font-style: normal;
-}
-
-/* form fields */
-label {
-display: block;
-font-family: ‘Quicksand’, sans-serif;
-font-size: 13px;
-font-weight: 600;
-text-transform: lowercase;
-letter-spacing: 0.08em;
-color: var(–ink-soft);
-margin-bottom: 8px;
-}
-label .hint {
-font-family: ‘Caveat’, cursive;
-text-transform: none;
-letter-spacing: 0;
-font-size: 16px;
-color: var(–lilac-400);
-font-weight: 400;
-margin-left: 8px;
-}
-
-input[type=“text”], input[type=“password”], select, textarea {
-width: 100%;
-background: rgba(255, 255, 255, 0.7);
-border: 1.5px solid var(–lilac-200);
-border-radius: 16px;
-padding: 13px 16px;
-font-family: ‘Quicksand’, sans-serif;
-font-size: 15px;
+gap: 14px;
+font-family: var(–mono);
+font-size: 10.5px;
 font-weight: 500;
+text-transform: uppercase;
+letter-spacing: 0.22em;
 color: var(–ink);
-transition: all 0.25s ease;
-outline: none;
-}
-input[type=“text”]:focus, input[type=“password”]:focus, select:focus, textarea:focus {
-border-color: var(–lilac-400);
-background: #fff;
-box-shadow: 0 0 0 4px rgba(168, 137, 217, 0.15);
-}
-textarea {
-resize: vertical;
-min-height: 220px;
-font-family: ‘Fraunces’, serif;
-font-size: 16px;
-line-height: 1.65;
-font-weight: 400;
-}
-select {
-appearance: none;
--webkit-appearance: none;
-background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' stroke='%238b6dc1' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>”);
-background-repeat: no-repeat;
-background-position: right 18px center;
-padding-right: 44px;
-cursor: pointer;
-}
-
-.row {
-display: grid;
-grid-template-columns: 1fr 1fr;
-gap: 18px;
 margin-bottom: 18px;
 }
-@media (max-width: 640px) {
-.row { grid-template-columns: 1fr; }
+.section-label .num {
+display: inline-block;
+padding: 2px 8px;
+background: var(–ink);
+color: var(–paper);
+font-size: 10px;
+}
+.section-label .rule {
+flex: 1;
+height: 1px;
+background: var(–ink);
+opacity: 0.3;
 }
 
-/* buttons */
-.btn {
-display: inline-flex;
+/* ––––– Main grid ––––– */
+.work {
+display: grid;
+grid-template-columns: 1.5fr 1fr;
+gap: 48px;
+margin-top: 48px;
+}
+
+@media (max-width: 940px) {
+.work { grid-template-columns: 1fr; gap: 56px; }
+.frame { padding: 32px 24px 60px; }
+.brand-name { font-size: 34px; }
+.masthead { flex-direction: column; align-items: flex-start; gap: 16px; }
+.masthead-meta { text-align: left; }
+}
+
+/* ––––– Manuscript panel ––––– */
+.manuscript {
+display: flex;
+flex-direction: column;
+}
+
+.dropzone {
+border: 1.5px dashed var(–ink-faint);
+background: rgba(255,253,247,0.5);
+padding: 22px 24px;
+margin-bottom: 16px;
+cursor: pointer;
+transition: all 0.2s ease;
+display: flex;
 align-items: center;
-justify-content: center;
-gap: 8px;
-border: none;
-cursor: pointer;
-font-family: ‘Quicksand’, sans-serif;
-font-weight: 600;
-font-size: 14px;
-letter-spacing: 0.04em;
-padding: 11px 20px;
-border-radius: 999px;
-transition: all 0.25s cubic-bezier(.4, 0, .2, 1);
-text-decoration: none;
+justify-content: space-between;
+gap: 16px;
 }
-.btn-primary {
-background: linear-gradient(120deg, var(–lilac-300), var(–mint-300));
-color: var(–lilac-700);
-box-shadow: var(–shadow-lilac);
-padding: 16px 36px;
-font-size: 16px;
-font-weight: 700;
+.dropzone:hover, .dropzone.drag {
+border-color: var(–oxblood);
+background: rgba(110,34,41,0.04);
 }
-.btn-primary:hover {
-transform: translateY(-2px);
-box-shadow: 0 16px 44px -10px rgba(168, 137, 217, 0.6);
-}
-.btn-primary:disabled {
-background: linear-gradient(120deg, #e6dcf5, #d6e9de);
-color: #b3a6c8;
-cursor: not-allowed;
-box-shadow: none;
-transform: none;
-}
-.btn-soft {
-background: rgba(255, 255, 255, 0.85);
-color: var(–lilac-500);
-border: 1.5px solid var(–lilac-200);
-}
-.btn-soft:hover {
-background: var(–lilac-50);
-border-color: var(–lilac-300);
-color: var(–lilac-700);
-}
-.btn-mint {
-background: var(–mint-100);
-color: var(–mint-500);
-border: 1.5px solid var(–mint-200);
-}
-.btn-mint:hover {
-background: var(–mint-200);
-color: #2c7a4f;
-}
-
-/* paste row */
-.field-with-action {
-display: flex;
-gap: 10px;
-align-items: stretch;
-}
-.field-with-action input { flex: 1; }
-.field-with-action .btn { padding: 0 18px; flex-shrink: 0; }
-
-.text-area-wrap { position: relative; }
-.char-count {
-position: absolute;
-bottom: 12px;
-right: 16px;
-font-family: ‘Caveat’, cursive;
-font-size: 16px;
+.dropzone.drag { border-style: solid; }
+.dropzone-text {
+font-family: var(–serif);
+font-size: 15px;
 color: var(–ink-soft);
-background: rgba(255, 255, 255, 0.85);
-padding: 2px 10px;
-border-radius: 12px;
-pointer-events: none;
+}
+.dropzone-text strong {
+color: var(–ink);
+font-weight: 500;
+font-style: italic;
+}
+.dropzone-icon {
+font-family: var(–mono);
+font-size: 11px;
+text-transform: uppercase;
+letter-spacing: 0.16em;
+padding: 6px 12px;
+border: 1px solid var(–ink);
+color: var(–ink);
+background: var(–paper);
+transition: all 0.15s ease;
+}
+.dropzone:hover .dropzone-icon {
+background: var(–ink);
+color: var(–paper);
 }
 
-/* style history */
-.history-list {
-display: flex;
-flex-wrap: wrap;
-gap: 8px;
-margin-top: 12px;
+.file-list {
+list-style: none;
+margin-bottom: 16px;
+border: 1px solid var(–rule);
+background: rgba(255,253,247,0.4);
+display: none;
 }
-.history-chip {
-background: rgba(255, 255, 255, 0.75);
-border: 1.5px dashed var(–mint-200);
-border-radius: 14px;
-padding: 8px 14px;
-font-family: ‘Fraunces’, serif;
-font-style: italic;
+.file-list.has-files { display: block; }
+.file-list li {
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding: 10px 14px;
+border-bottom: 1px solid var(–rule);
+font-family: var(–mono);
+font-size: 12.5px;
+color: var(–ink-soft);
+}
+.file-list li:last-child { border-bottom: none; }
+.file-list .file-name { color: var(–ink); }
+.file-list .file-meta {
+color: var(–ink-faint);
+font-size: 10.5px;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+}
+.file-remove {
+background: none;
+border: none;
+color: var(–ink-faint);
+font-family: var(–mono);
 font-size: 14px;
-color: var(–ink);
 cursor: pointer;
-transition: all 0.2s;
-max-width: 320px;
-overflow: hidden;
-text-overflow: ellipsis;
-white-space: nowrap;
+padding: 0 0 0 12px;
+transition: color 0.15s;
+}
+.file-remove:hover { color: var(–oxblood); }
+
+.editor-wrap {
+flex: 1;
+display: flex;
+flex-direction: column;
+background: #fffdf7;
+border: 1px solid var(–ink);
+box-shadow: 4px 4px 0 var(–paper-shadow);
+min-height: 480px;
+}
+.editor-tabs {
+display: flex;
+border-bottom: 1px solid var(–ink);
+}
+.editor-tab {
+background: var(–paper-deep);
+border: none;
+border-right: 1px solid var(–ink);
+padding: 11px 22px;
+font-family: var(–mono);
+font-size: 11px;
+font-weight: 500;
+text-transform: uppercase;
+letter-spacing: 0.14em;
+color: var(–ink-soft);
+cursor: pointer;
+transition: background 0.15s, color 0.15s;
+}
+.editor-tab:hover { color: var(–ink); }
+.editor-tab.active {
+background: #fffdf7;
+color: var(–ink);
+border-bottom: 1px solid #fffdf7;
+margin-bottom: -1px;
 position: relative;
 }
-.history-chip:hover {
-background: var(–mint-50);
-border-color: var(–mint-300);
-border-style: solid;
-transform: translateY(-1px);
-}
-.history-chip .x {
-margin-left: 8px;
-color: var(–lilac-300);
-font-weight: 700;
-opacity: 0;
-transition: opacity 0.2s;
-}
-.history-chip:hover .x { opacity: 1; }
-.history-empty {
-font-family: ‘Caveat’, cursive;
-color: var(–ink-soft);
-font-size: 16px;
-margin-top: 8px;
+.editor-tab.active::before {
+content: “”;
+position: absolute;
+top: -1px; left: 0; right: 0;
+height: 2px;
+background: var(–oxblood);
 }
 
-/* generate area */
-.generate-area {
-text-align: center;
-padding: 8px 0 4px;
-}
-.progress-wrap {
-margin-top: 22px;
+.editor-pane {
 display: none;
-}
-.progress-wrap.active { display: block; }
-.progress-bar {
-height: 12px;
-background: var(–lilac-50);
-border-radius: 999px;
+flex: 1;
 overflow: hidden;
-border: 1.5px solid var(–lilac-100);
-box-shadow: inset 0 1px 3px rgba(74, 49, 110, 0.08);
 }
-.progress-fill {
-height: 100%;
-width: 0%;
-background: linear-gradient(90deg, var(–lilac-300), var(–mint-300), var(–lilac-300));
-background-size: 200% 100%;
-animation: shimmer 2s linear infinite;
-transition: width 0.4s ease;
-border-radius: 999px;
-}
-@keyframes shimmer {
-0%   { background-position: 200% 0; }
-100% { background-position: -200% 0; }
-}
-.progress-label {
-margin-top: 10px;
-font-family: ‘Caveat’, cursive;
-font-size: 18px;
-color: var(–lilac-500);
-}
+.editor-pane.active { display: flex; flex-direction: column; }
 
-/* result area */
-.result {
-display: none;
-margin-top: 24px;
-text-align: center;
-}
-.result.active { display: block; }
-.result audio {
+textarea.manuscript-input {
+flex: 1;
 width: 100%;
-max-width: 500px;
-margin: 12px 0 18px;
-border-radius: 999px;
+border: none;
+outline: none;
+background: transparent;
+padding: 28px 32px;
+font-family: var(–serif);
+font-size: 16px;
+line-height: 1.7;
+color: var(–ink);
+resize: none;
+min-height: 440px;
+}
+textarea.manuscript-input::placeholder {
+color: var(–ink-faint);
+font-style: italic;
 }
 
-/* activity log */
-.log {
-background: linear-gradient(180deg, #fbf6ff 0%, #f3fbf6 100%);
-border-radius: 18px;
-padding: 16px 18px;
-height: 220px;
+.preview-pane {
+padding: 32px 40px;
 overflow-y: auto;
-font-family: ‘JetBrains Mono’, ‘Courier New’, monospace;
-font-size: 12.5px;
-line-height: 1.7;
-border: 1.5px solid var(–lilac-100);
+max-height: 600px;
+color: var(–ink);
 }
-.log-entry {
-margin-bottom: 4px;
+.preview-pane h1, .preview-pane h2, .preview-pane h3 {
+font-family: var(–serif);
+font-weight: 500;
+font-variation-settings: “opsz” 144;
+color: var(–ink);
+margin: 1.2em 0 0.5em;
+}
+.preview-pane h1 { font-size: 28px; font-style: italic; color: var(–oxblood); border-bottom: 1px solid var(–rule); padding-bottom: 8px; }
+.preview-pane h2 { font-size: 22px; }
+.preview-pane h3 { font-size: 18px; font-style: italic; }
+.preview-pane p { margin: 0.6em 0; line-height: 1.7; }
+.preview-pane code {
+font-family: var(–mono);
+font-size: 0.85em;
+background: var(–paper-deep);
+padding: 2px 6px;
+}
+.preview-pane pre {
+background: var(–ink);
+color: var(–paper);
+padding: 16px;
+overflow-x: auto;
+margin: 1em 0;
+font-family: var(–mono);
+font-size: 13px;
+}
+.preview-pane pre code { background: none; padding: 0; color: inherit; }
+.preview-pane blockquote {
+border-left: 3px solid var(–oxblood);
+padding-left: 18px;
+margin: 1em 0;
+font-style: italic;
 color: var(–ink-soft);
 }
-.log-entry .ts {
-color: var(–lilac-300);
-margin-right: 8px;
-}
-.log-entry.info { color: var(–ink); }
-.log-entry.success { color: var(–mint-500); }
-.log-entry.warn { color: #d59940; }
-.log-entry.error { color: #d57281; }
-.log::-webkit-scrollbar { width: 8px; }
-.log::-webkit-scrollbar-track { background: transparent; }
-.log::-webkit-scrollbar-thumb {
-background: var(–lilac-200);
-border-radius: 4px;
+.preview-pane ul, .preview-pane ol { margin: 0.6em 0 0.6em 1.4em; }
+.preview-pane li { margin: 0.3em 0; }
+.preview-pane a { color: var(–oxblood); text-decoration: underline; text-underline-offset: 3px; }
+.preview-pane hr { border: none; border-top: 1px solid var(–rule); margin: 2em 0; }
+.preview-empty {
+color: var(–ink-faint);
+font-style: italic;
+text-align: center;
+padding: 80px 20px;
 }
 
-.toolbar {
+/* ––––– Details panel ––––– */
+.details {
+display: flex;
+flex-direction: column;
+}
+.colophon {
+background: rgba(255,253,247,0.6);
+border: 1px solid var(–ink);
+box-shadow: 4px 4px 0 var(–paper-shadow);
+padding: 28px;
+}
+
+.field {
+margin-bottom: 18px;
+}
+.field:last-child { margin-bottom: 0; }
+.field label {
+display: block;
+font-family: var(–mono);
+font-size: 10px;
+font-weight: 500;
+text-transform: uppercase;
+letter-spacing: 0.18em;
+color: var(–ink-soft);
+margin-bottom: 6px;
+}
+.field-row {
+display: grid;
+grid-template-columns: 1fr 1fr;
+gap: 14px;
+}
+.field input[type=“text”],
+.field select,
+.field textarea {
+width: 100%;
+background: transparent;
+border: none;
+border-bottom: 1px solid var(–ink-faint);
+padding: 6px 0;
+font-family: var(–serif);
+font-size: 17px;
+color: var(–ink);
+outline: none;
+transition: border-color 0.2s;
+border-radius: 0;
+-webkit-appearance: none;
+appearance: none;
+}
+.field input[type=“text”]:focus,
+.field select:focus,
+.field textarea:focus {
+border-bottom-color: var(–oxblood);
+}
+.field textarea {
+resize: vertical;
+min-height: 60px;
+line-height: 1.5;
+font-size: 15px;
+}
+.field select {
+cursor: pointer;
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23463a30'/></svg>”);
+background-repeat: no-repeat;
+background-position: right 4px center;
+padding-right: 22px;
+}
+
+.colophon-rule {
+height: 1px;
+background: var(–ink);
+opacity: 0.15;
+margin: 22px 0 22px;
+}
+.colophon-rule.ornament {
+background: none;
+text-align: center;
+color: var(–ink-faint);
+font-family: var(–serif);
+font-size: 14px;
+height: auto;
+margin: 22px 0;
+letter-spacing: 0.5em;
+}
+
+/* ––––– Cover upload ––––– */
+.cover {
+display: grid;
+grid-template-columns: 90px 1fr;
+gap: 16px;
+align-items: start;
+}
+.cover-preview {
+width: 90px;
+height: 130px;
+background: var(–paper-deep);
+border: 1px solid var(–ink);
+box-shadow: 3px 3px 0 var(–paper-shadow);
+display: grid;
+place-items: center;
+overflow: hidden;
+position: relative;
+}
+.cover-preview img {
+width: 100%; height: 100%;
+object-fit: cover;
+display: block;
+}
+.cover-preview .placeholder {
+font-family: var(–mono);
+font-size: 9px;
+text-transform: uppercase;
+letter-spacing: 0.2em;
+color: var(–ink-faint);
+text-align: center;
+line-height: 1.6;
+}
+.cover-controls {
+display: flex;
+flex-direction: column;
+gap: 8px;
+}
+.cover-controls label {
+margin: 0;
+}
+.btn-secondary {
+background: var(–paper);
+border: 1px solid var(–ink);
+padding: 7px 14px;
+font-family: var(–mono);
+font-size: 10.5px;
+text-transform: uppercase;
+letter-spacing: 0.14em;
+color: var(–ink);
+cursor: pointer;
+text-align: center;
+transition: all 0.15s;
+display: inline-block;
+}
+.btn-secondary:hover {
+background: var(–ink);
+color: var(–paper);
+}
+.cover-help {
+font-family: var(–serif);
+font-style: italic;
+font-size: 13px;
+color: var(–ink-faint);
+line-height: 1.4;
+}
+
+/* ––––– Action ––––– */
+.imprint {
+margin-top: 56px;
+padding-top: 32px;
+border-top: 3px double var(–ink);
+display: flex;
+align-items: center;
+justify-content: space-between;
+gap: 24px;
+flex-wrap: wrap;
+}
+.imprint-text {
+font-family: var(–serif);
+font-style: italic;
+color: var(–ink-soft);
+font-size: 15px;
+max-width: 500px;
+}
+.imprint-text .em {
+color: var(–oxblood);
+font-weight: 500;
+font-style: normal;
+font-variant: small-caps;
+letter-spacing: 0.05em;
+}
+
+.btn-primary {
+background: var(–ink);
+color: var(–paper);
+border: 1.5px solid var(–ink);
+padding: 16px 36px;
+font-family: var(–mono);
+font-size: 12px;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.24em;
+cursor: pointer;
+box-shadow: 5px 5px 0 var(–oxblood);
+transition: all 0.15s ease;
+position: relative;
+display: inline-flex;
+align-items: center;
+gap: 10px;
+}
+.btn-primary:hover:not(:disabled) {
+transform: translate(-2px, -2px);
+box-shadow: 7px 7px 0 var(–oxblood);
+}
+.btn-primary:active:not(:disabled) {
+transform: translate(2px, 2px);
+box-shadow: 2px 2px 0 var(–oxblood);
+}
+.btn-primary:disabled {
+opacity: 0.4;
+cursor: not-allowed;
+box-shadow: 5px 5px 0 var(–paper-shadow);
+}
+.btn-primary .arrow {
+font-size: 14px;
+}
+
+/* ––––– Status / messages ––––– */
+.status {
+margin-top: 24px;
+padding: 14px 18px;
+font-family: var(–mono);
+font-size: 12px;
+color: var(–ink);
+border-left: 3px solid var(–moss);
+background: rgba(74,90,58,0.06);
+display: none;
+}
+.status.show { display: block; }
+.status.error { border-left-color: var(–error); background: rgba(138,42,26,0.06); color: var(–error); }
+.status .label {
+text-transform: uppercase;
+letter-spacing: 0.16em;
+font-size: 10px;
+color: var(–ink-faint);
+margin-bottom: 4px;
+}
+
+/* ––––– Footer / colophon ––––– */
+.footer {
+margin-top: 64px;
+padding-top: 24px;
+border-top: 1px solid var(–rule);
 display: flex;
 justify-content: space-between;
 align-items: center;
-margin-bottom: 14px;
+font-family: var(–mono);
+font-size: 10.5px;
+text-transform: uppercase;
+letter-spacing: 0.18em;
+color: var(–ink-faint);
 }
-.toolbar h2 { margin: 0; }
+.footer .ornament-mark {
+font-family: var(–serif);
+font-size: 18px;
+color: var(–oxblood);
+letter-spacing: 0;
+text-transform: none;
+}
 
-footer {
-text-align: center;
-margin-top: 30px;
-font-family: ‘Caveat’, cursive;
-font-size: 17px;
-color: var(–ink-soft);
+/* ––––– Animations ––––– */
+@keyframes fade-up {
+from { opacity: 0; transform: translateY(8px); }
+to { opacity: 1; transform: translateY(0); }
 }
-footer .heart { color: #e08fb8; }
+.frame > * { animation: fade-up 0.5s ease backwards; }
+.masthead { animation-delay: 0s; }
+.work { animation-delay: 0.1s; }
+.imprint { animation-delay: 0.2s; }
+.footer { animation-delay: 0.3s; }
 
-/* tiny inline icons */
-.ico { width: 14px; height: 14px; stroke-width: 2; stroke: currentColor; fill: none; }
-
-/* api key visibility toggle */
-.key-row {
-display: flex;
-gap: 10px;
-align-items: stretch;
-}
-.key-row input { flex: 1; }
-.save-status {
-font-family: ‘Caveat’, cursive;
-font-size: 16px;
-color: var(–mint-500);
-margin-top: 8px;
-opacity: 0;
-transition: opacity 0.4s;
-}
-.save-status.show { opacity: 1; }
-
-.style-tip {
-margin-top: 6px;
-font-family: ‘Fraunces’, serif;
-font-style: italic;
-font-size: 13.5px;
-color: var(–ink-soft);
-line-height: 1.5;
-}
+/* hidden file inputs */
+input[type=“file”] { display: none; }
 </style>
 
 </head>
 <body>
-
-<div class="sparkles">
-  <div class="sparkle" style="left:5%;  animation-delay:0s;">✦</div>
-  <div class="sparkle" style="left:18%; animation-delay:5s;">✿</div>
-  <div class="sparkle" style="left:32%; animation-delay:11s;">❀</div>
-  <div class="sparkle" style="left:50%; animation-delay:2s;">✦</div>
-  <div class="sparkle" style="left:65%; animation-delay:14s;">♡</div>
-  <div class="sparkle" style="left:78%; animation-delay:7s;">✿</div>
-  <div class="sparkle" style="left:90%; animation-delay:18s;">❀</div>
-</div>
-
-<div class="wrap">
-
-  <header>
-    <div class="crown">·୨୧· a soft little tts ·୨୧·</div>
-    <h1>dreamscript</h1>
-    <p class="tag">narrate your stories in gentle, downloadable voices</p>
-  </header>
-
-  <!-- API Key -->
-
-  <section class="card">
-    <h2><span class="num">i.</span> your secret key</h2>
-    <label for="apiKey">gemini api key <span class="hint">~ stored softly in your browser only</span></label>
-    <div class="key-row">
-      <input type="password" id="apiKey" placeholder="paste your key here…" autocomplete="off" spellcheck="false" />
-      <button class="btn btn-soft" id="toggleKey" type="button" title="show/hide">
-        <svg class="ico" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-      </button>
-      <button class="btn btn-mint" id="saveKey" type="button">save</button>
-    </div>
-    <div class="save-status" id="saveStatus">✿ saved!</div>
-  </section>
-
-  <!-- Voice + Style -->
-
-  <section class="card">
-    <h2><span class="num">ii.</span> choose a voice & mood</h2>
-    <div class="row">
-      <div>
-        <label for="voice">voice</label>
-        <select id="voice"></select>
-      </div>
-      <div>
-        <label for="model">model</label>
-        <select id="model">
-          <option value="gemini-2.5-flash-preview-tts">gemini 2.5 flash (faster)</option>
-          <option value="gemini-2.5-pro-preview-tts">gemini 2.5 pro (richer)</option>
-        </select>
-      </div>
-    </div>
+  <div class="frame">
 
 ```
-<label for="style">style / emotion direction <span class="hint">~ how should it feel?</span></label>
-<div class="field-with-action">
-  <input type="text" id="style" placeholder="e.g. read in a soft, dreamy whisper, slightly melancholic" />
-  <button class="btn btn-soft" id="saveStyle" type="button">+ save</button>
-</div>
-<p class="style-tip">tip: try things like <em>"warm storyteller voice, slow pace"</em> or <em>"breathy and intimate, like a midnight diary entry"</em></p>
-
-<div style="margin-top:18px;">
-  <label>style history <span class="hint">~ tap to use again</span></label>
-  <div class="history-list" id="historyList"></div>
-</div>
-```
-
-  </section>
-
-  <!-- Text -->
-
-  <section class="card">
-    <div class="toolbar">
-      <h2><span class="num">iii.</span> the text</h2>
-      <button class="btn btn-soft" id="pasteBtn" type="button">
-        <svg class="ico" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
-        paste
-      </button>
-    </div>
-    <div class="text-area-wrap">
-      <textarea id="text" placeholder="paste your webnovel chapter, poem, or any text you'd like read aloud…"></textarea>
-      <div class="char-count" id="charCount">0 chars · 0 chunks</div>
-    </div>
-  </section>
-
-  <!-- Generate -->
-
-  <section class="card generate-area">
-    <button class="btn btn-primary" id="generateBtn" type="button">
-      ✨ narrate &amp; download mp3
-    </button>
-
-```
-<div class="progress-wrap" id="progressWrap">
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  <div class="progress-label" id="progressLabel">preparing…</div>
-</div>
-
-<div class="result" id="result">
-  <audio id="audioPlayer" controls></audio>
+<header class="masthead">
   <div>
-    <a class="btn btn-primary" id="downloadLink" download="dreamscript-narration.mp3" style="padding: 12px 28px; font-size: 14px;">
-      ↓ download mp3
-    </a>
+    <div class="brand">
+      <div class="brand-mark">B</div>
+      <h1 class="brand-name">Bindery <em>&amp; Press</em></h1>
+    </div>
+    <p class="tagline">A craftsman's tool for binding manuscripts in markdown into proper, portable EPUB volumes.</p>
   </div>
-</div>
+  <div class="masthead-meta">
+    <div><strong>Edition</strong> &nbsp; MMXXVI</div>
+    <div><strong>Format</strong> &nbsp; EPUB 3.0</div>
+    <div><strong>Folio</strong> &nbsp; <span id="folio">000</span></div>
+  </div>
+</header>
+
+<main class="work">
+
+  <!-- ============ MANUSCRIPT ============ -->
+  <section class="manuscript">
+    <div class="section-label">
+      <span class="num">I</span>
+      The Manuscript
+      <span class="rule"></span>
+    </div>
+
+    <label for="file-input" class="dropzone" id="dropzone">
+      <div class="dropzone-text">
+        Drop <strong>.md</strong> files here, or click to browse. Multiple files become chapters in order.
+      </div>
+      <span class="dropzone-icon">Browse</span>
+    </label>
+    <input type="file" id="file-input" accept=".md,.markdown,text/markdown" multiple />
+
+    <ul class="file-list" id="file-list"></ul>
+
+    <div class="editor-wrap">
+      <div class="editor-tabs">
+        <button class="editor-tab active" data-tab="write">Write</button>
+        <button class="editor-tab" data-tab="preview">Preview</button>
+      </div>
+      <div class="editor-pane active" id="pane-write">
+        <textarea
+          class="manuscript-input"
+          id="markdown-input"
+          spellcheck="true"
+          placeholder="# Chapter One
 ```
 
-  </section>
+It was the best of times, it was the worst of times…
 
-  <!-- Activity Log -->
-
-  <section class="card">
-    <div class="toolbar">
-      <h2><span class="num">iv.</span> activity log</h2>
-      <button class="btn btn-soft" id="clearLog" type="button">clear</button>
-    </div>
-    <div class="log" id="log"></div>
-  </section>
-
-  <footer>
-    made with <span class="heart">♡</span> · whispered through gemini · encoded by lamejs
-  </footer>
-
+Begin typing or paste your markdown here. Use # for chapter titles — each # heading becomes a new chapter in the bound volume.”></textarea>
 </div>
+<div class="editor-pane" id="pane-preview">
+<div class="preview-pane" id="preview"></div>
+</div>
+</div>
+</section>
+
+```
+  <!-- ============ DETAILS ============ -->
+  <aside class="details">
+    <div class="section-label">
+      <span class="num">II</span>
+      The Colophon
+      <span class="rule"></span>
+    </div>
+
+    <div class="colophon">
+      <div class="field">
+        <label for="title">Title</label>
+        <input type="text" id="title" placeholder="A Tale of Two Cities" />
+      </div>
+
+      <div class="field">
+        <label for="author">Author</label>
+        <input type="text" id="author" placeholder="Charles Dickens" />
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="language">Language</label>
+          <select id="language">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+            <option value="it">Italiano</option>
+            <option value="pt">Português</option>
+            <option value="nl">Nederlands</option>
+            <option value="sv">Svenska</option>
+            <option value="ja">日本語</option>
+            <option value="zh">中文</option>
+            <option value="ko">한국어</option>
+            <option value="ru">Русский</option>
+            <option value="ar">العربية</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="publisher">Publisher</label>
+          <input type="text" id="publisher" placeholder="Bindery Press" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" placeholder="A short blurb that will appear in your reader's library..."></textarea>
+      </div>
+
+      <div class="colophon-rule ornament">❦</div>
+
+      <div class="field">
+        <label>Cover Plate</label>
+        <div class="cover">
+          <div class="cover-preview" id="cover-preview">
+            <div class="placeholder">No<br>Cover<br>Set</div>
+          </div>
+          <div class="cover-controls">
+            <label for="cover-input" class="btn-secondary">Choose Image</label>
+            <input type="file" id="cover-input" accept="image/jpeg,image/png" />
+            <button type="button" class="btn-secondary" id="cover-clear" style="display:none;">Remove</button>
+            <p class="cover-help">JPG or PNG. Portrait, 1600×2400 looks best.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="colophon-rule"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="font-choice">Type</label>
+          <select id="font-choice">
+            <option value="serif">Serif (Classic)</option>
+            <option value="sans">Sans-serif (Modern)</option>
+            <option value="mono">Monospace (Technical)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="split-mode">Chapter Break</label>
+          <select id="split-mode">
+            <option value="h1">On every # heading</option>
+            <option value="h2">On every ## heading</option>
+            <option value="files">By uploaded file</option>
+            <option value="none">Single chapter</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </aside>
+</main>
+
+<!-- ============ BIND ============ -->
+<section class="imprint">
+  <p class="imprint-text">
+    When the manuscript is set and the colophon entered, <span class="em">press to bind</span> &mdash; your volume will be assembled and offered for download.
+  </p>
+  <button class="btn-primary" id="bind-btn">
+    Bind &amp; Publish
+    <span class="arrow">→</span>
+  </button>
+</section>
+
+<div class="status" id="status">
+  <div class="label" id="status-label">Status</div>
+  <div id="status-msg"></div>
+</div>
+
+<footer class="footer">
+  <div>Set in Fraunces &amp; JetBrains Mono</div>
+  <div class="ornament-mark">⁂</div>
+  <div>EPUB 3 · IDPF compliant</div>
+</footer>
+```
+
+  </div>
 
 <script>
-/* ==================================================================== */
-/*  ✿ dreamscript ✿  — soft tumblr tts                                  */
-/* ==================================================================== */
+/* ============================================================
+   Bindery — markdown → EPUB
+   ============================================================ */
 
-const VOICES = [
-  { id: "Zephyr",        desc: "bright" },
-  { id: "Puck",          desc: "upbeat" },
-  { id: "Charon",        desc: "informative" },
-  { id: "Kore",          desc: "firm" },
-  { id: "Fenrir",        desc: "excitable" },
-  { id: "Leda",          desc: "youthful" },
-  { id: "Orus",          desc: "firm" },
-  { id: "Aoede",         desc: "breezy" },
-  { id: "Callirrhoe",    desc: "easy-going" },
-  { id: "Autonoe",       desc: "bright" },
-  { id: "Enceladus",     desc: "breathy" },
-  { id: "Iapetus",       desc: "clear" },
-  { id: "Umbriel",       desc: "easy-going" },
-  { id: "Algieba",       desc: "smooth" },
-  { id: "Despina",       desc: "smooth" },
-  { id: "Erinome",       desc: "clear" },
-  { id: "Algenib",       desc: "gravelly" },
-  { id: "Rasalgethi",    desc: "informative" },
-  { id: "Laomedeia",     desc: "upbeat" },
-  { id: "Achernar",      desc: "soft" },
-  { id: "Alnilam",       desc: "firm" },
-  { id: "Schedar",       desc: "even" },
-  { id: "Gacrux",        desc: "mature" },
-  { id: "Pulcherrima",   desc: "forward" },
-  { id: "Achird",        desc: "friendly" },
-  { id: "Zubenelgenubi", desc: "casual" },
-  { id: "Vindemiatrix",  desc: "gentle" },
-  { id: "Sadachbia",     desc: "lively" },
-  { id: "Sadaltager",    desc: "knowledgeable" },
-  { id: "Sulafat",       desc: "warm" }
-];
-
-const STORE_KEYS = {
-  apiKey:    "dreamscript:apiKey",
-  voice:     "dreamscript:voice",
-  model:     "dreamscript:model",
-  style:     "dreamscript:style",
-  history:   "dreamscript:styleHistory"
-};
-
-const CHUNK_TARGET = 800;     // chars per chunk
-const MAX_RETRIES  = 5;
-const SAMPLE_RATE  = 24000;   // gemini tts returns 24kHz pcm
-
-/* ---------- safe storage (falls back to memory) ---------- */
-const memStore = {};
-const storage = {
-  get(key) {
-    try { return localStorage.getItem(key); }
-    catch { return memStore[key] ?? null; }
-  },
-  set(key, val) {
-    try { localStorage.setItem(key, val); }
-    catch { memStore[key] = val; }
-  },
-  del(key) {
-    try { localStorage.removeItem(key); }
-    catch { delete memStore[key]; }
-  }
-};
-
-/* ---------- DOM refs ---------- */
-const $ = (id) => document.getElementById(id);
-const apiKeyInput   = $("apiKey");
-const voiceSelect   = $("voice");
-const modelSelect   = $("model");
-const styleInput    = $("style");
-const textArea      = $("text");
-const charCount     = $("charCount");
-const historyList   = $("historyList");
-const generateBtn   = $("generateBtn");
-const progressWrap  = $("progressWrap");
-const progressFill  = $("progressFill");
-const progressLabel = $("progressLabel");
-const resultBox     = $("result");
-const audioPlayer   = $("audioPlayer");
-const downloadLink  = $("downloadLink");
-const logBox        = $("log");
-const saveStatus    = $("saveStatus");
-
-/* ---------- logging ---------- */
-function log(msg, level = "info") {
-  const entry = document.createElement("div");
-  entry.className = "log-entry " + level;
-  const now = new Date();
-  const ts  = now.toTimeString().slice(0, 8);
-  entry.innerHTML = `<span class="ts">${ts}</span>${msg}`;
-  logBox.appendChild(entry);
-  logBox.scrollTop = logBox.scrollHeight;
-}
-
-/* ---------- voice list ---------- */
-function populateVoices() {
-  voiceSelect.innerHTML = "";
-  for (const v of VOICES) {
-    const opt = document.createElement("option");
-    opt.value = v.id;
-    opt.textContent = `${v.id} — ${v.desc}`;
-    voiceSelect.appendChild(opt);
-  }
-}
-
-/* ---------- style history ---------- */
-function getHistory() {
-  try { return JSON.parse(storage.get(STORE_KEYS.history) || "[]"); }
-  catch { return []; }
-}
-function saveHistory(arr) {
-  storage.set(STORE_KEYS.history, JSON.stringify(arr.slice(0, 20)));
-}
-function renderHistory() {
-  const arr = getHistory();
-  historyList.innerHTML = "";
-  if (arr.length === 0) {
-    const empty = document.createElement("div");
-    empty.className = "history-empty";
-    empty.textContent = "no saved styles yet ~ save one above ✿";
-    historyList.appendChild(empty);
-    return;
-  }
-  arr.forEach((style, idx) => {
-    const chip = document.createElement("div");
-    chip.className = "history-chip";
-    chip.title = "click to use · shift-click to delete";
-    chip.innerHTML = `"${escapeHtml(style)}"<span class="x">×</span>`;
-    chip.addEventListener("click", (e) => {
-      if (e.shiftKey || e.target.classList.contains("x")) {
-        const next = arr.filter((_, i) => i !== idx);
-        saveHistory(next);
-        renderHistory();
-        log(`deleted style preset`, "warn");
-      } else {
-        styleInput.value = style;
-        styleInput.focus();
-        log(`loaded style: "${truncate(style, 40)}"`, "info");
-      }
-    });
-    historyList.appendChild(chip);
-  });
-}
-function addToHistory(style) {
-  if (!style.trim()) return;
-  const arr = getHistory();
-  const filtered = arr.filter(s => s !== style);
-  filtered.unshift(style);
-  saveHistory(filtered);
-  renderHistory();
-}
-
-function escapeHtml(s) {
-  return s.replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[c]));
-}
-function truncate(s, n) {
-  return s.length > n ? s.slice(0, n) + "…" : s;
-}
-
-/* ---------- text chunking ---------- */
-function chunkText(text, target = CHUNK_TARGET) {
-  text = text.trim().replace(/\r\n/g, "\n");
-  if (text.length <= target) return [text];
-
-  const chunks = [];
-  let i = 0;
-  while (i < text.length) {
-    let end = Math.min(i + target, text.length);
-    if (end < text.length) {
-      // try to find a sentence end within the last 200 chars of window
-      const window = text.slice(i, end);
-      const searchStart = Math.max(0, window.length - 250);
-      const slice = window.slice(searchStart);
-
-      const sentenceMatch = slice.match(/.*[.!?…"”'’\)\]][\s\n]/g);
-      if (sentenceMatch) {
-        const last = sentenceMatch[sentenceMatch.length - 1];
-        const idx = slice.lastIndexOf(last) + last.length;
-        end = i + searchStart + idx;
-      } else {
-        // fall back to newline
-        const nlIdx = window.lastIndexOf("\n");
-        if (nlIdx > target * 0.5) {
-          end = i + nlIdx + 1;
-        } else {
-          // fall back to last comma
-          const commaIdx = window.lastIndexOf(", ");
-          if (commaIdx > target * 0.5) {
-            end = i + commaIdx + 2;
-          } else {
-            // fall back to last space
-            const spIdx = window.lastIndexOf(" ");
-            if (spIdx > target * 0.5) end = i + spIdx + 1;
-          }
-        }
-      }
-    }
-    const chunk = text.slice(i, end).trim();
-    if (chunk) chunks.push(chunk);
-    i = end;
-  }
-  return chunks;
-}
-
-/* ---------- char counter ---------- */
-function updateCharCount() {
-  const t = textArea.value;
-  const chunks = t.trim() ? chunkText(t) : [];
-  charCount.textContent = `${t.length.toLocaleString()} chars · ${chunks.length} chunk${chunks.length === 1 ? "" : "s"}`;
-}
-
-/* ---------- base64 → Int16Array PCM ---------- */
-function base64ToInt16(base64) {
-  const binary = atob(base64);
-  const len = binary.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
-  // pcm16 little-endian
-  return new Int16Array(bytes.buffer, bytes.byteOffset, Math.floor(bytes.byteLength / 2));
-}
-
-/* ---------- concatenate Int16Arrays ---------- */
-function concatInt16(arrays) {
-  let total = 0;
-  for (const a of arrays) total += a.length;
-  const out = new Int16Array(total);
-  let off = 0;
-  for (const a of arrays) {
-    out.set(a, off);
-    off += a.length;
-  }
-  return out;
-}
-
-/* ---------- PCM → MP3 (lamejs) ---------- */
-function pcmToMp3(pcm, sampleRate = SAMPLE_RATE, kbps = 128) {
-  if (typeof lamejs === "undefined") {
-    throw new Error("lamejs failed to load from CDN");
-  }
-  const encoder = new lamejs.Mp3Encoder(1, sampleRate, kbps);
-  const blockSize = 1152;
-  const mp3Chunks = [];
-  for (let i = 0; i < pcm.length; i += blockSize) {
-    const chunk = pcm.subarray(i, i + blockSize);
-    const buf = encoder.encodeBuffer(chunk);
-    if (buf.length > 0) mp3Chunks.push(buf);
-  }
-  const flush = encoder.flush();
-  if (flush.length > 0) mp3Chunks.push(flush);
-  return new Blob(mp3Chunks, { type: "audio/mpeg" });
-}
-
-/* ---------- gemini fetch with exponential backoff ---------- */
-async function fetchTtsChunk({ text, style, voice, model, apiKey }) {
-  const prompt = style.trim()
-    ? `${style.trim()}: ${text}`
-    : text;
-
-  const body = {
-    contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: {
-      responseModalities: ["AUDIO"],
-      speechConfig: {
-        voiceConfig: {
-          prebuiltVoiceConfig: { voiceName: voice }
-        }
-      }
-    }
+(function () {
+  // ---------- State ----------
+  const state = {
+    files: [],         // { name, content, size }
+    coverData: null,   // { dataUrl, mime, ext, blob }
   };
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+  // ---------- Elements ----------
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    dropzone:   $('dropzone'),
+    fileInput:  $('file-input'),
+    fileList:   $('file-list'),
+    mdInput:    $('markdown-input'),
+    preview:    $('preview'),
+    folio:      $('folio'),
+    title:      $('title'),
+    author:     $('author'),
+    language:   $('language'),
+    publisher:  $('publisher'),
+    description:$('description'),
+    coverInput: $('cover-input'),
+    coverPrev:  $('cover-preview'),
+    coverClear: $('cover-clear'),
+    fontChoice: $('font-choice'),
+    splitMode:  $('split-mode'),
+    bindBtn:    $('bind-btn'),
+    status:     $('status'),
+    statusLbl:  $('status-label'),
+    statusMsg:  $('status-msg'),
+    tabs:       document.querySelectorAll('.editor-tab'),
+    panes: {
+      write:   $('pane-write'),
+      preview: $('pane-preview'),
+    },
+  };
 
-  let lastErr;
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+  // ---------- Tabs ----------
+  els.tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      els.tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const which = tab.dataset.tab;
+      Object.entries(els.panes).forEach(([k, p]) => {
+        p.classList.toggle('active', k === which);
+      });
+      if (which === 'preview') renderPreview();
+    });
+  });
+
+  // ---------- Folio counter (just decorative) ----------
+  function updateFolio() {
+    const text = combinedMarkdown();
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    els.folio.textContent = String(words).padStart(3, '0');
+  }
+
+  // ---------- Drag & drop ----------
+  ['dragenter', 'dragover'].forEach(evt => {
+    els.dropzone.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      els.dropzone.classList.add('drag');
+    });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    els.dropzone.addEventListener(evt, e => {
+      e.preventDefault(); e.stopPropagation();
+      els.dropzone.classList.remove('drag');
+    });
+  });
+  els.dropzone.addEventListener('drop', e => {
+    const files = Array.from(e.dataTransfer.files || []);
+    handleFiles(files);
+  });
+  els.fileInput.addEventListener('change', e => {
+    const files = Array.from(e.target.files || []);
+    handleFiles(files);
+    els.fileInput.value = '';
+  });
+
+  function handleFiles(files) {
+    const mdFiles = files.filter(f =>
+      /\.(md|markdown|txt)$/i.test(f.name) || f.type === 'text/markdown'
+    );
+    if (!mdFiles.length) {
+      flash('Only markdown (.md) files accepted.', 'error');
+      return;
+    }
+    let pending = mdFiles.length;
+    mdFiles.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        state.files.push({
+          name: file.name,
+          content: e.target.result,
+          size: file.size,
+        });
+        if (--pending === 0) {
+          renderFileList();
+          // If no manuscript text yet, show first file in editor
+          if (!els.mdInput.value.trim() && state.files.length) {
+            els.mdInput.value = combinedMarkdown();
+          }
+          updateFolio();
+        }
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  function renderFileList() {
+    els.fileList.innerHTML = '';
+    if (!state.files.length) {
+      els.fileList.classList.remove('has-files');
+      return;
+    }
+    els.fileList.classList.add('has-files');
+    state.files.forEach((file, idx) => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <span>
+          <span class="file-name">${escapeHtml(file.name)}</span>
+          <span class="file-meta"> · ${formatBytes(file.size)}</span>
+        </span>
+        <button class="file-remove" data-idx="${idx}" title="Remove">✕</button>
+      `;
+      els.fileList.appendChild(li);
+    });
+    els.fileList.querySelectorAll('.file-remove').forEach(btn => {
+      btn.addEventListener('click', () => {
+        state.files.splice(parseInt(btn.dataset.idx), 1);
+        renderFileList();
+        updateFolio();
+      });
+    });
+  }
+
+  function combinedMarkdown() {
+    if (els.mdInput.value.trim()) return els.mdInput.value;
+    return state.files.map(f => f.content).join('\n\n');
+  }
+
+  // ---------- Cover image ----------
+  els.coverInput.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!/^image\/(jpeg|png)$/.test(file.type)) {
+      flash('Cover must be JPEG or PNG.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const ext = file.type === 'image/png' ? 'png' : 'jpg';
+      state.coverData = {
+        dataUrl: ev.target.result,
+        mime: file.type,
+        ext,
+        blob: file,
+      };
+      els.coverPrev.innerHTML = `<img src="${ev.target.result}" alt="Cover">`;
+      els.coverClear.style.display = 'inline-block';
+    };
+    reader.readAsDataURL(file);
+  });
+  els.coverClear.addEventListener('click', () => {
+    state.coverData = null;
+    els.coverInput.value = '';
+    els.coverPrev.innerHTML = '<div class="placeholder">No<br>Cover<br>Set</div>';
+    els.coverClear.style.display = 'none';
+  });
+
+  // ---------- Live preview ----------
+  function renderPreview() {
+    const md = combinedMarkdown();
+    if (!md.trim()) {
+      els.preview.innerHTML = '<div class="preview-empty">Nothing to preview yet. Write or import a manuscript first.</div>';
+      return;
+    }
+    els.preview.innerHTML = marked.parse(md);
+  }
+
+  els.mdInput.addEventListener('input', () => {
+    updateFolio();
+  });
+
+  // ---------- Status messages ----------
+  function flash(msg, kind = 'ok', label = null) {
+    els.status.classList.add('show');
+    els.status.classList.toggle('error', kind === 'error');
+    els.statusLbl.textContent = label || (kind === 'error' ? 'Error' : 'Status');
+    els.statusMsg.textContent = msg;
+  }
+
+  // ---------- Helpers ----------
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  function escapeXml(s) { return escapeHtml(s); }
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(1) + ' MB';
+  }
+  function uuidv4() {
+    // Simple UUID v4
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  function safeFilename(s) {
+    return s.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'untitled';
+  }
+
+  // ---------- Markdown → chapters ----------
+  function splitChapters(markdown, mode) {
+    if (mode === 'none' || !markdown.trim()) {
+      return [{ title: 'Chapter', content: markdown }];
+    }
+    if (mode === 'files') {
+      if (state.files.length) {
+        return state.files.map((f, i) => {
+          // try to extract a title from first heading
+          const m = f.content.match(/^#{1,3}\s+(.+)/m);
+          return {
+            title: m ? m[1].trim() : f.name.replace(/\.[^.]+$/, ''),
+            content: f.content,
+          };
+        });
+      }
+      return [{ title: 'Chapter', content: markdown }];
+    }
+    const headingLevel = mode === 'h2' ? 2 : 1;
+    const re = new RegExp(`^#{${headingLevel}}\\s+(.+)$`, 'gm');
+    const splits = [];
+    let last = 0;
+    let lastTitle = null;
+    let match;
+    while ((match = re.exec(markdown)) !== null) {
+      if (last !== match.index) {
+        splits.push({
+          title: lastTitle || 'Front Matter',
+          content: markdown.slice(last, match.index).trim(),
+        });
+      }
+      lastTitle = match[1].trim();
+      last = match.index;
+    }
+    if (last < markdown.length) {
+      splits.push({
+        title: lastTitle || 'Chapter',
+        content: markdown.slice(last).trim(),
+      });
+    }
+    // remove empty front matter if first split is empty
+    return splits.filter(s => s.content.trim()).length
+      ? splits.filter(s => s.content.trim())
+      : [{ title: 'Chapter', content: markdown }];
+  }
+
+  // ---------- EPUB stylesheet (book interior) ----------
+  function bookCss(fontChoice) {
+    const families = {
+      serif: `Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif`,
+      sans:  `-apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif`,
+      mono:  `"SF Mono", Menlo, Consolas, "Courier New", monospace`,
+    };
+    const family = families[fontChoice] || families.serif;
+    return `
+@charset "utf-8";
+@page { margin: 5%; }
+html { font-size: 100%; }
+body {
+  font-family: ${family};
+  line-height: 1.55;
+  margin: 0;
+  padding: 0;
+  text-align: justify;
+  hyphens: auto;
+  -webkit-hyphens: auto;
+  color: #1a1614;
+  font-size: 1em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: ${family};
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: left;
+  margin: 1.4em 0 0.6em;
+  page-break-after: avoid;
+}
+h1 {
+  font-size: 1.8em;
+  margin-top: 0;
+  page-break-before: always;
+  text-align: center;
+  font-style: italic;
+  font-weight: 500;
+  padding: 1.2em 0 0.6em;
+  border-bottom: 1px solid #ccc;
+}
+h1.chapter-title {
+  page-break-before: always;
+}
+h2 { font-size: 1.4em; }
+h3 { font-size: 1.15em; font-style: italic; }
+p {
+  margin: 0;
+  text-indent: 1.2em;
+  orphans: 2;
+  widows: 2;
+}
+p:first-of-type, h1 + p, h2 + p, h3 + p, blockquote + p, hr + p, ul + p, ol + p, pre + p {
+  text-indent: 0;
+}
+blockquote {
+  margin: 1em 1.5em;
+  font-style: italic;
+  border-left: 2px solid #999;
+  padding-left: 1em;
+  color: #444;
+}
+ul, ol { margin: 0.6em 0 0.6em 1.4em; text-align: left; }
+li { margin: 0.2em 0; }
+code {
+  font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  background: #eee;
+  padding: 1px 4px;
+  border-radius: 2px;
+}
+pre {
+  font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  background: #f4f1ec;
+  padding: 0.8em 1em;
+  border-radius: 3px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.4;
+  text-align: left;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+pre code { background: none; padding: 0; border-radius: 0; }
+a { color: #6e2229; text-decoration: underline; }
+hr {
+  border: 0;
+  border-top: 1px solid #999;
+  width: 30%;
+  margin: 2em auto;
+}
+img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
+table { border-collapse: collapse; margin: 1em 0; width: 100%; font-size: 0.9em; }
+th, td { border: 1px solid #ccc; padding: 0.4em 0.6em; text-align: left; }
+th { background: #f4f1ec; font-weight: 600; }
+
+/* Cover page */
+.cover-page {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  page-break-after: always;
+}
+.cover-page img {
+  max-width: 100%;
+  max-height: 100vh;
+  margin: 0 auto;
+}
+
+/* Title page */
+.title-page {
+  text-align: center;
+  page-break-after: always;
+  padding: 4em 0;
+}
+.title-page .book-title {
+  font-size: 2.2em;
+  font-weight: 500;
+  font-style: italic;
+  margin: 1.5em 0 0.5em;
+  line-height: 1.2;
+}
+.title-page .book-author {
+  font-size: 1.2em;
+  margin-top: 1em;
+  font-variant: small-caps;
+  letter-spacing: 0.1em;
+}
+.title-page .book-publisher {
+  font-size: 0.9em;
+  margin-top: 6em;
+  font-variant: small-caps;
+  letter-spacing: 0.15em;
+  color: #555;
+}
+`.trim();
+  }
+
+  // ---------- XHTML wrapper ----------
+  function xhtmlPage(title, bodyHtml) {
+    return `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="en" xml:lang="en">
+<head>
+<meta charset="utf-8" />
+<title>${escapeXml(title)}</title>
+<link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body>
+${bodyHtml}
+</body>
+</html>`;
+  }
+
+  // marked setup — EPUB 3 accepts HTML5 content documents, so we use defaults.
+  // Post-process output to self-close void elements for maximum reader compatibility.
+  function toXhtmlSafe(html) {
+    return html
+      .replace(/<br\s*>/gi, '<br />')
+      .replace(/<hr\s*>/gi, '<hr />')
+      .replace(/<img([^>]*?)(?<!\/)>/gi, '<img$1 />');
+  }
+  marked.setOptions({ gfm: true, breaks: false });
+
+  // ---------- Build EPUB ----------
+  async function buildEpub() {
+    const md = combinedMarkdown();
+    if (!md.trim()) {
+      flash('Nothing to bind. Write or import a manuscript first.', 'error');
+      return;
+    }
+
+    const title = (els.title.value || 'Untitled Manuscript').trim();
+    const author = (els.author.value || 'Anonymous').trim();
+    const language = els.language.value || 'en';
+    const publisher = (els.publisher.value || 'Bindery Press').trim();
+    const description = (els.description.value || '').trim();
+    const fontChoice = els.fontChoice.value;
+    const splitMode = els.splitMode.value;
+
+    flash('Setting type, binding signatures...', 'ok', 'Working');
+    els.bindBtn.disabled = true;
+
     try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+      // Allow UI to update
+      await new Promise(r => setTimeout(r, 30));
+
+      const chapters = splitChapters(md, splitMode);
+      const uuid = uuidv4();
+      const date = new Date().toISOString().split('T')[0];
+      const modified = new Date().toISOString().replace(/\.\d{3}/, '');
+
+      const zip = new JSZip();
+
+      // 1. mimetype (must be first, uncompressed)
+      zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
+
+      // 2. META-INF/container.xml
+      zip.file('META-INF/container.xml', `<?xml version="1.0" encoding="UTF-8"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+  <rootfiles>
+    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+  </rootfiles>
+</container>`);
+
+      // 3. OEBPS/styles.css
+      zip.file('OEBPS/styles.css', bookCss(fontChoice));
+
+      // 4. Chapter files
+      const chapterFiles = chapters.map((ch, i) => {
+        const num = String(i + 1).padStart(3, '0');
+        const filename = `chapter-${num}.xhtml`;
+        // Render markdown
+        let html = marked.parse(ch.content);
+        html = toXhtmlSafe(html);
+        // Make sure first heading uses chapter-title class for page-break
+        html = html.replace(/<h1>/, '<h1 class="chapter-title">');
+        const xhtml = xhtmlPage(ch.title, html);
+        zip.file(`OEBPS/${filename}`, xhtml);
+        return { filename, title: ch.title, id: `ch${num}` };
       });
 
-      if (res.status === 429 || res.status >= 500) {
-        const delay = Math.min(1000 * Math.pow(2, attempt), 30000) + Math.random() * 500;
-        log(`server says ${res.status}, retrying in ${(delay/1000).toFixed(1)}s…`, "warn");
-        await sleep(delay);
-        continue;
+      // 5. Title page
+      const titlePageHtml = `
+<div class="title-page">
+  <h1 class="book-title">${escapeXml(title)}</h1>
+  <p class="book-author">${escapeXml(author)}</p>
+  ${publisher ? `<p class="book-publisher">${escapeXml(publisher)}</p>` : ''}
+</div>`;
+      zip.file('OEBPS/title-page.xhtml', xhtmlPage(title, titlePageHtml));
+
+      // 6. Cover (if provided)
+      let coverEntries = '';
+      let coverManifest = '';
+      let coverSpine = '';
+      let coverGuide = '';
+      if (state.coverData) {
+        const coverImgFile = `cover.${state.coverData.ext}`;
+        const arrBuf = await state.coverData.blob.arrayBuffer();
+        zip.file(`OEBPS/${coverImgFile}`, arrBuf);
+
+        const coverPageHtml = `
+<div class="cover-page">
+  <img src="${coverImgFile}" alt="Cover" />
+</div>`;
+        zip.file('OEBPS/cover.xhtml', xhtmlPage('Cover', coverPageHtml));
+
+        coverManifest = `
+    <item id="cover-image" href="${coverImgFile}" media-type="${state.coverData.mime}" properties="cover-image"/>
+    <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>`;
+        coverSpine = `
+    <itemref idref="cover" linear="yes"/>`;
+        coverGuide = `
+    <reference type="cover" title="Cover" href="cover.xhtml"/>`;
       }
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`);
-      }
 
-      const data = await res.json();
-      const part = data?.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-      if (!part) {
-        throw new Error("response had no audio data");
-      }
-      return base64ToInt16(part.inlineData.data);
+      // 7. Navigation document (EPUB 3)
+      const navListItems = chapterFiles
+        .map(c => `      <li><a href="${c.filename}">${escapeXml(c.title)}</a></li>`)
+        .join('\n');
+      const navXhtml = `<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="${language}" xml:lang="${language}">
+<head>
+  <meta charset="utf-8" />
+  <title>Table of Contents</title>
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body>
+  <nav epub:type="toc" id="toc">
+    <h1>Contents</h1>
+    <ol>
+${navListItems}
+    </ol>
+  </nav>
+</body>
+</html>`;
+      zip.file('OEBPS/nav.xhtml', navXhtml);
 
-    } catch (err) {
-      lastErr = err;
-      const isNet = err.name === "TypeError" || /network|fetch/i.test(err.message);
-      if (!isNet && attempt > 0) throw err;
-      const delay = Math.min(1000 * Math.pow(2, attempt), 30000) + Math.random() * 500;
-      log(`network hiccup (${err.message}) — retrying in ${(delay/1000).toFixed(1)}s…`, "warn");
-      await sleep(delay);
-    }
-  }
-  throw lastErr || new Error("max retries exceeded");
-}
+      // 8. NCX (legacy, for older readers)
+      const ncxPoints = chapterFiles.map((c, i) => `
+    <navPoint id="navPoint-${i + 1}" playOrder="${i + 1}">
+      <navLabel><text>${escapeXml(c.title)}</text></navLabel>
+      <content src="${c.filename}"/>
+    </navPoint>`).join('');
 
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+      zip.file('OEBPS/toc.ncx', `<?xml version="1.0" encoding="UTF-8"?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta name="dtb:uid" content="urn:uuid:${uuid}"/>
+    <meta name="dtb:depth" content="1"/>
+    <meta name="dtb:totalPageCount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle><text>${escapeXml(title)}</text></docTitle>
+  <docAuthor><text>${escapeXml(author)}</text></docAuthor>
+  <navMap>${ncxPoints}
+  </navMap>
+</ncx>`);
 
-/* ---------- main pipeline ---------- */
-async function generate() {
-  const apiKey = apiKeyInput.value.trim();
-  const text = textArea.value.trim();
-  const style = styleInput.value;
-  const voice = voiceSelect.value;
-  const model = modelSelect.value;
+      // 9. Build content.opf
+      const manifestItems = chapterFiles
+        .map(c => `    <item id="${c.id}" href="${c.filename}" media-type="application/xhtml+xml"/>`)
+        .join('\n');
+      const spineItems = chapterFiles
+        .map(c => `    <itemref idref="${c.id}"/>`)
+        .join('\n');
 
-  if (!apiKey) {
-    log("you'll need to add your gemini api key first ✿", "error");
-    apiKeyInput.focus();
-    return;
-  }
-  if (!text) {
-    log("the text box is empty — paste something to narrate ✿", "error");
-    textArea.focus();
-    return;
-  }
+      const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid" xml:lang="${language}">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
+    <dc:identifier id="bookid">urn:uuid:${uuid}</dc:identifier>
+    <dc:title>${escapeXml(title)}</dc:title>
+    <dc:creator id="creator">${escapeXml(author)}</dc:creator>
+    <meta refines="#creator" property="role" scheme="marc:relators">aut</meta>
+    <dc:language>${language}</dc:language>
+    <dc:publisher>${escapeXml(publisher)}</dc:publisher>
+    <dc:date>${date}</dc:date>
+    ${description ? `<dc:description>${escapeXml(description)}</dc:description>` : ''}
+    <meta property="dcterms:modified">${modified}</meta>
+  </metadata>
+  <manifest>
+    <item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/>
+    <item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/>
+    <item id="css" href="styles.css" media-type="text/css"/>
+    <item id="title-page" href="title-page.xhtml" media-type="application/xhtml+xml"/>${coverManifest}
+${manifestItems}
+  </manifest>
+  <spine toc="ncx">${coverSpine}
+    <itemref idref="title-page" linear="yes"/>
+    <itemref idref="nav" linear="yes"/>
+${spineItems}
+  </spine>
+  <guide>${coverGuide}
+    <reference type="toc" title="Table of Contents" href="nav.xhtml"/>
+    <reference type="title-page" title="Title Page" href="title-page.xhtml"/>
+  </guide>
+</package>`;
 
-  generateBtn.disabled = true;
-  resultBox.classList.remove("active");
-  progressWrap.classList.add("active");
-  progressFill.style.width = "0%";
-  progressLabel.textContent = "preparing chunks…";
+      zip.file('OEBPS/content.opf', contentOpf);
 
-  // remember settings
-  storage.set(STORE_KEYS.voice, voice);
-  storage.set(STORE_KEYS.model, model);
-  storage.set(STORE_KEYS.style, style);
-
-  const chunks = chunkText(text);
-  log(`split text into ${chunks.length} chunk${chunks.length === 1 ? "" : "s"} (~${CHUNK_TARGET} chars each)`, "info");
-  log(`using voice: ${voice} · model: ${model}`, "info");
-  if (style.trim()) log(`style: "${truncate(style.trim(), 80)}"`, "info");
-
-  const pcmParts = [];
-  const t0 = performance.now();
-
-  try {
-    for (let i = 0; i < chunks.length; i++) {
-      const n = i + 1;
-      progressLabel.textContent = `narrating chunk ${n} of ${chunks.length}…`;
-      log(`▸ chunk ${n}/${chunks.length} (${chunks[i].length} chars)`, "info");
-
-      const pcm = await fetchTtsChunk({
-        text: chunks[i],
-        style, voice, model, apiKey
+      // Generate EPUB blob
+      const blob = await zip.generateAsync({
+        type: 'blob',
+        mimeType: 'application/epub+zip',
+        compression: 'DEFLATE',
+        compressionOptions: { level: 6 },
       });
 
-      pcmParts.push(pcm);
-      const pct = (n / chunks.length) * 100;
-      progressFill.style.width = pct.toFixed(1) + "%";
-      log(`  ✓ received ${(pcm.byteLength / 1024).toFixed(1)} KB of pcm`, "success");
+      // Download
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${safeFilename(title)}.epub`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-      // tiny pause between chunks to be polite
-      if (i < chunks.length - 1) await sleep(150);
-    }
+      const sizeKb = (blob.size / 1024).toFixed(1);
+      flash(`Bound — ${chapters.length} chapter${chapters.length === 1 ? '' : 's'}, ${sizeKb} KB. Your volume has been delivered.`, 'ok', 'Published');
 
-    progressLabel.textContent = "stitching audio…";
-    const fullPcm = concatInt16(pcmParts);
-    const seconds = fullPcm.length / SAMPLE_RATE;
-    log(`stitched ${pcmParts.length} pcm parts → ${seconds.toFixed(1)}s of audio`, "success");
-
-    progressLabel.textContent = "encoding mp3…";
-    log("encoding to mp3 with lamejs…", "info");
-    const mp3Blob = pcmToMp3(fullPcm);
-    const url = URL.createObjectURL(mp3Blob);
-
-    audioPlayer.src = url;
-    downloadLink.href = url;
-    const stamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-    downloadLink.download = `dreamscript-${voice.toLowerCase()}-${stamp}.mp3`;
-
-    resultBox.classList.add("active");
-    progressLabel.textContent = "all done ✿";
-    progressFill.style.width = "100%";
-
-    const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
-    log(`✿ done in ${elapsed}s · mp3 size: ${(mp3Blob.size / 1024).toFixed(1)} KB`, "success");
-
-  } catch (err) {
-    log(`✗ ${err.message}`, "error");
-    progressLabel.textContent = "something went wrong ✿";
-  } finally {
-    generateBtn.disabled = false;
-  }
-}
-
-/* ---------- event wiring ---------- */
-function init() {
-  populateVoices();
-
-  // restore prefs
-  apiKeyInput.value = storage.get(STORE_KEYS.apiKey) || "";
-  const savedVoice  = storage.get(STORE_KEYS.voice);
-  const savedModel  = storage.get(STORE_KEYS.model);
-  const savedStyle  = storage.get(STORE_KEYS.style);
-  if (savedVoice && VOICES.find(v => v.id === savedVoice)) voiceSelect.value = savedVoice;
-  else voiceSelect.value = "Sulafat"; // warm default
-  if (savedModel) modelSelect.value = savedModel;
-  if (savedStyle) styleInput.value = savedStyle;
-
-  renderHistory();
-  updateCharCount();
-
-  // text events
-  textArea.addEventListener("input", updateCharCount);
-
-  // paste
-  $("pasteBtn").addEventListener("click", async () => {
-    try {
-      const t = await navigator.clipboard.readText();
-      if (t) {
-        textArea.value = t;
-        updateCharCount();
-        log(`pasted ${t.length.toLocaleString()} chars from clipboard ✿`, "success");
-      } else {
-        log("clipboard was empty", "warn");
-      }
     } catch (err) {
-      log(`couldn't read clipboard: ${err.message}`, "error");
+      console.error(err);
+      flash(`Couldn't bind: ${err.message}`, 'error');
+    } finally {
+      els.bindBtn.disabled = false;
     }
-  });
-
-  // api key save
-  $("saveKey").addEventListener("click", () => {
-    storage.set(STORE_KEYS.apiKey, apiKeyInput.value.trim());
-    saveStatus.classList.add("show");
-    log("api key saved to local storage ✿", "success");
-    setTimeout(() => saveStatus.classList.remove("show"), 1800);
-  });
-
-  // toggle key visibility
-  $("toggleKey").addEventListener("click", () => {
-    apiKeyInput.type = apiKeyInput.type === "password" ? "text" : "password";
-  });
-
-  // save style preset
-  $("saveStyle").addEventListener("click", () => {
-    const s = styleInput.value.trim();
-    if (!s) { log("style is empty — write something first ✿", "warn"); return; }
-    addToHistory(s);
-    log(`saved style preset: "${truncate(s, 40)}"`, "success");
-  });
-
-  // generate
-  generateBtn.addEventListener("click", generate);
-
-  // clear log
-  $("clearLog").addEventListener("click", () => {
-    logBox.innerHTML = "";
-    log("log cleared ✿", "info");
-  });
-
-  // greeting
-  log("dreamscript loaded · ready when you are ✿", "success");
-  if (typeof lamejs === "undefined") {
-    log("⚠ lamejs didn't load from cdn — mp3 encoding will fail", "error");
-  } else {
-    log("lamejs loaded · mp3 encoder ready", "info");
   }
-}
 
-document.addEventListener("DOMContentLoaded", init);
+  els.bindBtn.addEventListener('click', buildEpub);
+
+  // initial folio
+  updateFolio();
+})();
 </script>
 
 </body>
