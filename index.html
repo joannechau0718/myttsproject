@@ -7,480 +7,432 @@
 <title>Bindery — Markdown to EPUB</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 <style>
   :root {
-    --paper:        #f4ece0;
-    --paper-deep:   #ebe0cc;
-    --paper-shadow: #d9c9ae;
-    --ink:          #1c1612;
-    --ink-soft:     #463a30;
-    --ink-faint:    #8a7a66;
-    --rule:         #c9b89a;
-    --oxblood:      #6e2229;
-    --oxblood-deep: #4a161b;
-    --gilt:         #9a7530;
-    --moss:         #4a5a3a;
-    --error:        #8a2a1a;
+    --bg:          #faf7f1;
+    --bg-elev:     #ffffff;
+    --bg-sunk:     #f3efe5;
+    --ink:         #0e0c0a;
+    --ink-2:       #45403a;
+    --ink-3:       #8a8278;
+    --rule:        #e6dfd0;
+    --rule-strong: #d0c6b0;
+    --accent:      #c43d24;
+    --accent-deep: #9a2c18;
+    --accent-soft: rgba(196,61,36,0.08);
+    --success:     #3d6b42;
 
 ```
---serif: "Fraunces", "Iowan Old Style", "Palatino", Georgia, serif;
---mono:  "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+--serif: "Fraunces", "Iowan Old Style", Georgia, serif;
+--mono:  "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+--radius: 4px;
+--shadow-sm: 0 1px 2px rgba(14,12,10,0.04);
+--shadow:    0 4px 24px -8px rgba(14,12,10,0.08), 0 1px 2px rgba(14,12,10,0.04);
 ```
 
 }
 
 - { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body { background: var(–paper); color: var(–ink); }
+html, body {
+background: var(–bg);
+color: var(–ink);
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
 
 body {
 font-family: var(–serif);
-font-size: 17px;
-line-height: 1.55;
+font-size: 16px;
+line-height: 1.5;
 min-height: 100vh;
-/* subtle paper texture via layered noise */
 background-image:
-radial-gradient(1200px 600px at 80% -10%, rgba(110,34,41,0.06), transparent 60%),
-radial-gradient(900px 500px at -10% 110%, rgba(154,117,48,0.07), transparent 60%),
-url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.09 0 0 0 0 0.07 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>”);
+radial-gradient(1000px 500px at 90% -10%, rgba(196,61,36,0.04), transparent 60%),
+radial-gradient(800px 400px at -10% 100%, rgba(196,61,36,0.03), transparent 60%);
 background-attachment: fixed;
 }
 
-::selection { background: var(–oxblood); color: var(–paper); }
+::selection { background: var(–accent); color: var(–bg-elev); }
 
-/* ––––– Layout ––––– */
-.frame {
-max-width: 1240px;
-margin: 0 auto;
-padding: 56px 40px 80px;
-}
-
-/* ––––– Masthead ––––– */
-.masthead {
-display: flex;
-align-items: flex-end;
-justify-content: space-between;
-padding-bottom: 28px;
-border-bottom: 1px solid var(–ink);
-position: relative;
-}
-.masthead::after {
-content: “”;
+/* ============ Visually hidden ============ */
+.vh {
 position: absolute;
-left: 0; right: 0;
-bottom: -5px;
-height: 1px;
-background: var(–ink);
+width: 1px; height: 1px;
+padding: 0; margin: -1px;
+overflow: hidden;
+clip: rect(0,0,0,0);
+white-space: nowrap;
+border: 0;
 }
 
-.brand {
+/* ============ Frame ============ */
+.frame {
+max-width: 880px;
+margin: 0 auto;
+padding: 64px 32px 96px;
+}
+@media (max-width: 600px) {
+.frame { padding: 40px 20px 80px; }
+}
+
+/* ============ Masthead ============ */
+.mast {
+display: flex;
+align-items: baseline;
+justify-content: space-between;
+margin-bottom: 56px;
+gap: 24px;
+flex-wrap: wrap;
+}
+.mast-brand {
 display: flex;
 align-items: baseline;
 gap: 14px;
 }
-.brand-mark {
-width: 44px; height: 44px;
-border: 1.5px solid var(–ink);
-display: grid; place-items: center;
+.mast-name {
 font-family: var(–serif);
-font-weight: 700;
-font-size: 24px;
-font-style: italic;
-background: var(–paper);
-box-shadow: 3px 3px 0 var(–ink);
-transform: translateY(2px);
-}
-.brand-name {
-font-family: var(–serif);
-font-size: 44px;
-font-weight: 500;
+font-size: 36px;
+font-weight: 400;
 font-variation-settings: “opsz” 144, “SOFT” 30;
-letter-spacing: -0.02em;
+letter-spacing: -0.025em;
 line-height: 1;
+color: var(–ink);
 }
-.brand-name em {
+.mast-name em {
 font-style: italic;
 font-weight: 400;
-color: var(–oxblood);
+color: var(–accent);
 }
-.masthead-meta {
-text-align: right;
+.mast-tag {
 font-family: var(–mono);
 font-size: 11px;
-color: var(–ink-soft);
 text-transform: uppercase;
-letter-spacing: 0.14em;
-line-height: 1.7;
+letter-spacing: 0.18em;
+color: var(–ink-3);
+padding-left: 14px;
+border-left: 1px solid var(–rule-strong);
+align-self: center;
 }
-.masthead-meta strong {
-color: var(–ink);
-font-weight: 500;
-}
-
-.tagline {
-font-family: var(–serif);
-font-style: italic;
-font-weight: 300;
-font-size: 19px;
-color: var(–ink-soft);
-margin-top: 18px;
-max-width: 560px;
-font-variation-settings: “opsz” 144;
-}
-
-/* ––––– Section labels ––––– */
-.section-label {
-display: flex;
-align-items: center;
-gap: 14px;
+.mast-meta {
 font-family: var(–mono);
 font-size: 10.5px;
-font-weight: 500;
 text-transform: uppercase;
-letter-spacing: 0.22em;
-color: var(–ink);
+letter-spacing: 0.2em;
+color: var(–ink-3);
+}
+.mast-meta .dot {
+display: inline-block;
+width: 5px; height: 5px;
+border-radius: 50%;
+background: var(–success);
+margin-right: 8px;
+vertical-align: middle;
+}
+@media (max-width: 600px) {
+.mast-name { font-size: 28px; }
+.mast-tag { display: none; }
+}
+
+/* ============ Step heads ============ */
+.step {
+display: flex;
+align-items: baseline;
+gap: 14px;
 margin-bottom: 18px;
 }
-.section-label .num {
-display: inline-block;
-padding: 2px 8px;
-background: var(–ink);
-color: var(–paper);
-font-size: 10px;
+.step-num {
+font-family: var(–mono);
+font-size: 11px;
+color: var(–accent);
+font-weight: 600;
+letter-spacing: 0.1em;
+width: 24px;
+flex-shrink: 0;
 }
-.section-label .rule {
+.step-title {
+font-family: var(–serif);
+font-size: 22px;
+font-weight: 500;
+font-variation-settings: “opsz” 144;
+letter-spacing: -0.01em;
+color: var(–ink);
+}
+.step-title em {
+font-style: italic;
+font-weight: 400;
+color: var(–ink-2);
+}
+.step-rule {
 flex: 1;
 height: 1px;
-background: var(–ink);
-opacity: 0.3;
+background: var(–rule);
+transform: translateY(-4px);
 }
 
-/* ––––– Main grid ––––– */
-.work {
-display: grid;
-grid-template-columns: 1.5fr 1fr;
-gap: 48px;
-margin-top: 48px;
-}
-
-@media (max-width: 940px) {
-.work { grid-template-columns: 1fr; gap: 56px; }
-.frame { padding: 32px 24px 60px; }
-.brand-name { font-size: 34px; }
-.masthead { flex-direction: column; align-items: flex-start; gap: 16px; }
-.masthead-meta { text-align: left; }
-}
-
-/* ––––– Manuscript panel ––––– */
-.manuscript {
-display: flex;
-flex-direction: column;
-}
+/* ============ Drop zone ============ */
+.upload { margin-bottom: 56px; }
 
 .dropzone {
-border: 1.5px dashed var(–ink-faint);
-background: rgba(255,253,247,0.5);
-padding: 22px 24px;
-margin-bottom: 16px;
-cursor: pointer;
-transition: all 0.2s ease;
 display: flex;
+flex-direction: column;
 align-items: center;
-justify-content: space-between;
-gap: 16px;
+justify-content: center;
+padding: 64px 32px;
+background: var(–bg-elev);
+border: 1.5px dashed var(–rule-strong);
+border-radius: var(–radius);
+cursor: pointer;
+transition: all 0.2s cubic-bezier(.4,0,.2,1);
+text-align: center;
+position: relative;
+overflow: hidden;
 }
-.dropzone:hover, .dropzone.drag {
-border-color: var(–oxblood);
-background: rgba(110,34,41,0.04);
+.dropzone::before {
+content: “”;
+position: absolute;
+inset: 0;
+background: var(–accent-soft);
+opacity: 0;
+transition: opacity 0.2s;
+pointer-events: none;
 }
-.dropzone.drag { border-style: solid; }
-.dropzone-text {
+.dropzone:hover {
+border-color: var(–accent);
+transform: translateY(-1px);
+box-shadow: var(–shadow);
+}
+.dropzone:hover::before { opacity: 0.4; }
+.dropzone.drag {
+border-color: var(–accent);
+border-style: solid;
+transform: scale(1.005);
+}
+.dropzone.drag::before { opacity: 1; }
+
+.zone-icon {
+margin-bottom: 20px;
+color: var(–ink-2);
+transition: color 0.2s, transform 0.3s;
+}
+.dropzone:hover .zone-icon,
+.dropzone.drag .zone-icon {
+color: var(–accent);
+transform: translateY(-3px);
+}
+.zone-title {
 font-family: var(–serif);
-font-size: 15px;
-color: var(–ink-soft);
-}
-.dropzone-text strong {
-color: var(–ink);
+font-size: 24px;
 font-weight: 500;
-font-style: italic;
+font-variation-settings: “opsz” 144;
+color: var(–ink);
+margin-bottom: 8px;
+letter-spacing: -0.015em;
 }
-.dropzone-icon {
+.zone-title em {
+font-style: italic;
+font-weight: 400;
+color: var(–accent);
+}
+.zone-sub {
+font-family: var(–serif);
+font-style: italic;
+color: var(–ink-2);
+font-size: 15px;
+max-width: 360px;
+}
+.zone-hint {
+font-family: var(–mono);
+font-size: 10.5px;
+text-transform: uppercase;
+letter-spacing: 0.18em;
+color: var(–ink-3);
+margin-top: 18px;
+padding: 6px 12px;
+border: 1px solid var(–rule-strong);
+border-radius: 100px;
+background: var(–bg);
+}
+
+/* ============ File list ============ */
+.files-wrap { margin-top: 24px; }
+.files-head {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 12px;
+padding: 0 4px;
+flex-wrap: wrap;
+gap: 8px;
+}
+.files-count {
 font-family: var(–mono);
 font-size: 11px;
 text-transform: uppercase;
 letter-spacing: 0.16em;
-padding: 6px 12px;
-border: 1px solid var(–ink);
-color: var(–ink);
-background: var(–paper);
-transition: all 0.15s ease;
+color: var(–ink-2);
 }
-.dropzone:hover .dropzone-icon {
-background: var(–ink);
-color: var(–paper);
+.files-count .num {
+color: var(–accent);
+font-weight: 600;
 }
+.files-actions { display: flex; gap: 8px; }
 
-.file-list {
+.files {
 list-style: none;
-margin-bottom: 16px;
+background: var(–bg-elev);
 border: 1px solid var(–rule);
-background: rgba(255,253,247,0.4);
-display: none;
+border-radius: var(–radius);
+overflow: hidden;
+box-shadow: var(–shadow-sm);
 }
-.file-list.has-files { display: block; }
-.file-list li {
-display: flex;
+.file-item {
+display: grid;
+grid-template-columns: 32px 1fr auto;
 align-items: center;
-justify-content: space-between;
-padding: 10px 14px;
+gap: 14px;
+padding: 14px 16px;
 border-bottom: 1px solid var(–rule);
-font-family: var(–mono);
-font-size: 12.5px;
-color: var(–ink-soft);
+transition: background 0.15s;
 }
-.file-list li:last-child { border-bottom: none; }
-.file-list .file-name { color: var(–ink); }
-.file-list .file-meta {
-color: var(–ink-faint);
+.file-item:last-child { border-bottom: none; }
+.file-item:hover { background: var(–bg-sunk); }
+.file-index {
+font-family: var(–mono);
+font-size: 11px;
+color: var(–ink-3);
+text-align: center;
+font-weight: 500;
+}
+.file-info { min-width: 0; }
+.file-name {
+font-family: var(–serif);
+font-size: 16px;
+color: var(–ink);
+overflow: hidden;
+text-overflow: ellipsis;
+white-space: nowrap;
+margin-bottom: 2px;
+}
+.file-meta {
+font-family: var(–mono);
 font-size: 10.5px;
+color: var(–ink-3);
 text-transform: uppercase;
 letter-spacing: 0.1em;
 }
-.file-remove {
-background: none;
-border: none;
-color: var(–ink-faint);
-font-family: var(–mono);
-font-size: 14px;
-cursor: pointer;
-padding: 0 0 0 12px;
-transition: color 0.15s;
-}
-.file-remove:hover { color: var(–oxblood); }
-
-.editor-wrap {
-flex: 1;
-display: flex;
-flex-direction: column;
-background: #fffdf7;
-border: 1px solid var(–ink);
-box-shadow: 4px 4px 0 var(–paper-shadow);
-min-height: 480px;
-}
-.editor-tabs {
-display: flex;
-border-bottom: 1px solid var(–ink);
-}
-.editor-tab {
-background: var(–paper-deep);
-border: none;
-border-right: 1px solid var(–ink);
-padding: 11px 22px;
-font-family: var(–mono);
-font-size: 11px;
-font-weight: 500;
-text-transform: uppercase;
-letter-spacing: 0.14em;
-color: var(–ink-soft);
-cursor: pointer;
-transition: background 0.15s, color 0.15s;
-}
-.editor-tab:hover { color: var(–ink); }
-.editor-tab.active {
-background: #fffdf7;
-color: var(–ink);
-border-bottom: 1px solid #fffdf7;
-margin-bottom: -1px;
-position: relative;
-}
-.editor-tab.active::before {
-content: “”;
-position: absolute;
-top: -1px; left: 0; right: 0;
-height: 2px;
-background: var(–oxblood);
-}
-
-.editor-pane {
-display: none;
-flex: 1;
-overflow: hidden;
-}
-.editor-pane.active { display: flex; flex-direction: column; }
-
-textarea.manuscript-input {
-flex: 1;
-width: 100%;
-border: none;
-outline: none;
+.file-controls { display: flex; gap: 4px; }
+.file-btn {
+width: 28px; height: 28px;
 background: transparent;
-padding: 28px 32px;
-font-family: var(–serif);
-font-size: 16px;
-line-height: 1.7;
-color: var(–ink);
-resize: none;
-min-height: 440px;
+border: 1px solid transparent;
+border-radius: var(–radius);
+color: var(–ink-3);
+cursor: pointer;
+display: grid;
+place-items: center;
+transition: all 0.15s;
+padding: 0;
 }
-textarea.manuscript-input::placeholder {
-color: var(–ink-faint);
-font-style: italic;
-}
-
-.preview-pane {
-padding: 32px 40px;
-overflow-y: auto;
-max-height: 600px;
+.file-btn:hover:not(:disabled) {
+background: var(–bg);
+border-color: var(–rule-strong);
 color: var(–ink);
 }
-.preview-pane h1, .preview-pane h2, .preview-pane h3 {
-font-family: var(–serif);
-font-weight: 500;
-font-variation-settings: “opsz” 144;
-color: var(–ink);
-margin: 1.2em 0 0.5em;
+.file-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.file-btn.danger:hover:not(:disabled) {
+border-color: var(–accent);
+color: var(–accent);
 }
-.preview-pane h1 { font-size: 28px; font-style: italic; color: var(–oxblood); border-bottom: 1px solid var(–rule); padding-bottom: 8px; }
-.preview-pane h2 { font-size: 22px; }
-.preview-pane h3 { font-size: 18px; font-style: italic; }
-.preview-pane p { margin: 0.6em 0; line-height: 1.7; }
-.preview-pane code {
-font-family: var(–mono);
-font-size: 0.85em;
-background: var(–paper-deep);
-padding: 2px 6px;
-}
-.preview-pane pre {
-background: var(–ink);
-color: var(–paper);
-padding: 16px;
-overflow-x: auto;
-margin: 1em 0;
-font-family: var(–mono);
-font-size: 13px;
-}
-.preview-pane pre code { background: none; padding: 0; color: inherit; }
-.preview-pane blockquote {
-border-left: 3px solid var(–oxblood);
-padding-left: 18px;
-margin: 1em 0;
-font-style: italic;
-color: var(–ink-soft);
-}
-.preview-pane ul, .preview-pane ol { margin: 0.6em 0 0.6em 1.4em; }
-.preview-pane li { margin: 0.3em 0; }
-.preview-pane a { color: var(–oxblood); text-decoration: underline; text-underline-offset: 3px; }
-.preview-pane hr { border: none; border-top: 1px solid var(–rule); margin: 2em 0; }
-.preview-empty {
-color: var(–ink-faint);
-font-style: italic;
-text-align: center;
-padding: 80px 20px;
-}
+.file-btn svg { width: 14px; height: 14px; }
 
-/* ––––– Details panel ––––– */
-.details {
-display: flex;
-flex-direction: column;
-}
-.colophon {
-background: rgba(255,253,247,0.6);
-border: 1px solid var(–ink);
-box-shadow: 4px 4px 0 var(–paper-shadow);
-padding: 28px;
-}
+/* ============ Form ============ */
+.form-section { margin-bottom: 56px; }
 
-.field {
-margin-bottom: 18px;
-}
-.field:last-child { margin-bottom: 0; }
-.field label {
-display: block;
-font-family: var(–mono);
-font-size: 10px;
-font-weight: 500;
-text-transform: uppercase;
-letter-spacing: 0.18em;
-color: var(–ink-soft);
-margin-bottom: 6px;
-}
-.field-row {
+.form-grid {
 display: grid;
 grid-template-columns: 1fr 1fr;
-gap: 14px;
+gap: 20px 24px;
 }
+@media (max-width: 600px) {
+.form-grid { grid-template-columns: 1fr; gap: 16px; }
+}
+
+.field { display: flex; flex-direction: column; }
+.field.full { grid-column: 1 / -1; }
+.field label {
+font-family: var(–mono);
+font-size: 10.5px;
+font-weight: 500;
+text-transform: uppercase;
+letter-spacing: 0.16em;
+color: var(–ink-2);
+margin-bottom: 8px;
+}
+.field label .req { color: var(–accent); margin-left: 2px; }
+
 .field input[type=“text”],
 .field select,
 .field textarea {
 width: 100%;
-background: transparent;
-border: none;
-border-bottom: 1px solid var(–ink-faint);
-padding: 6px 0;
+background: var(–bg-elev);
+border: 1px solid var(–rule);
+border-radius: var(–radius);
+padding: 11px 14px;
 font-family: var(–serif);
-font-size: 17px;
+font-size: 16px;
 color: var(–ink);
 outline: none;
-transition: border-color 0.2s;
-border-radius: 0;
+transition: border-color 0.15s, box-shadow 0.15s;
 -webkit-appearance: none;
 appearance: none;
 }
-.field input[type=“text”]:focus,
+.field input::placeholder,
+.field textarea::placeholder {
+color: var(–ink-3);
+font-style: italic;
+}
+.field input:hover,
+.field select:hover,
+.field textarea:hover { border-color: var(–rule-strong); }
+.field input:focus,
 .field select:focus,
 .field textarea:focus {
-border-bottom-color: var(–oxblood);
+border-color: var(–accent);
+box-shadow: 0 0 0 3px var(–accent-soft);
 }
 .field textarea {
 resize: vertical;
-min-height: 60px;
+min-height: 72px;
 line-height: 1.5;
 font-size: 15px;
 }
 .field select {
 cursor: pointer;
-background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23463a30'/></svg>”);
+background-image: url(“data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1.5l5 5 5-5' stroke='%2345403a' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>”);
 background-repeat: no-repeat;
-background-position: right 4px center;
-padding-right: 22px;
+background-position: right 14px center;
+padding-right: 36px;
 }
 
-.colophon-rule {
-height: 1px;
-background: var(–ink);
-opacity: 0.15;
-margin: 22px 0 22px;
-}
-.colophon-rule.ornament {
-background: none;
-text-align: center;
-color: var(–ink-faint);
-font-family: var(–serif);
-font-size: 14px;
-height: auto;
-margin: 22px 0;
-letter-spacing: 0.5em;
-}
-
-/* ––––– Cover upload ––––– */
-.cover {
+/* ============ Cover ============ */
+.cover-row {
 display: grid;
-grid-template-columns: 90px 1fr;
+grid-template-columns: 96px 1fr;
 gap: 16px;
-align-items: start;
+align-items: stretch;
 }
 .cover-preview {
-width: 90px;
-height: 130px;
-background: var(–paper-deep);
-border: 1px solid var(–ink);
-box-shadow: 3px 3px 0 var(–paper-shadow);
+aspect-ratio: 2 / 3;
+background: var(–bg-sunk);
+border: 1px solid var(–rule);
+border-radius: var(–radius);
+overflow: hidden;
 display: grid;
 place-items: center;
-overflow: hidden;
 position: relative;
 }
 .cover-preview img {
@@ -488,133 +440,140 @@ width: 100%; height: 100%;
 object-fit: cover;
 display: block;
 }
-.cover-preview .placeholder {
+.cover-placeholder {
 font-family: var(–mono);
 font-size: 9px;
 text-transform: uppercase;
-letter-spacing: 0.2em;
-color: var(–ink-faint);
+letter-spacing: 0.16em;
+color: var(–ink-3);
 text-align: center;
-line-height: 1.6;
+line-height: 1.7;
+padding: 8px;
 }
 .cover-controls {
 display: flex;
 flex-direction: column;
+justify-content: center;
 gap: 8px;
 }
-.cover-controls label {
-margin: 0;
-}
-.btn-secondary {
-background: var(–paper);
-border: 1px solid var(–ink);
-padding: 7px 14px;
+
+/* ============ Buttons ============ */
+.btn {
 font-family: var(–mono);
-font-size: 10.5px;
+font-size: 11px;
+font-weight: 500;
 text-transform: uppercase;
 letter-spacing: 0.14em;
-color: var(–ink);
 cursor: pointer;
-text-align: center;
-transition: all 0.15s;
-display: inline-block;
+border-radius: var(–radius);
+transition: all 0.15s ease;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+border: 1px solid transparent;
+text-decoration: none;
+white-space: nowrap;
+}
+.btn-secondary {
+background: var(–bg-elev);
+color: var(–ink);
+border-color: var(–rule-strong);
+padding: 9px 14px;
 }
 .btn-secondary:hover {
-background: var(–ink);
-color: var(–paper);
+border-color: var(–ink);
+background: var(–bg);
 }
-.cover-help {
+.btn-text {
+background: transparent;
+color: var(–ink-2);
+padding: 6px 10px;
+}
+.btn-text:hover { color: var(–accent); }
+.btn-primary {
+background: var(–ink);
+color: var(–bg);
+padding: 14px 28px;
+font-size: 12px;
+letter-spacing: 0.18em;
+font-weight: 600;
+box-shadow: var(–shadow);
+position: relative;
+}
+.btn-primary:hover:not(:disabled) {
+background: var(–accent);
+transform: translateY(-1px);
+box-shadow: 0 6px 20px -4px rgba(196,61,36,0.4);
+}
+.btn-primary:active:not(:disabled) { transform: translateY(0); }
+.btn-primary:disabled {
+background: var(–ink-3);
+cursor: not-allowed;
+box-shadow: none;
+}
+.btn-primary .arrow {
 font-family: var(–serif);
 font-style: italic;
-font-size: 13px;
-color: var(–ink-faint);
-line-height: 1.4;
+font-size: 16px;
+letter-spacing: 0;
+transition: transform 0.2s;
 }
+.btn-primary:hover:not(:disabled) .arrow { transform: translateX(3px); }
 
-/* ––––– Action ––––– */
-.imprint {
-margin-top: 56px;
-padding-top: 32px;
-border-top: 3px double var(–ink);
+/* ============ Action bar ============ */
+.action {
 display: flex;
 align-items: center;
 justify-content: space-between;
+padding-top: 32px;
+border-top: 1px solid var(–rule);
 gap: 24px;
 flex-wrap: wrap;
 }
-.imprint-text {
+.action-info {
 font-family: var(–serif);
 font-style: italic;
-color: var(–ink-soft);
-font-size: 15px;
-max-width: 500px;
-}
-.imprint-text .em {
-color: var(–oxblood);
-font-weight: 500;
-font-style: normal;
-font-variant: small-caps;
-letter-spacing: 0.05em;
-}
-
-.btn-primary {
-background: var(–ink);
-color: var(–paper);
-border: 1.5px solid var(–ink);
-padding: 16px 36px;
-font-family: var(–mono);
-font-size: 12px;
-font-weight: 600;
-text-transform: uppercase;
-letter-spacing: 0.24em;
-cursor: pointer;
-box-shadow: 5px 5px 0 var(–oxblood);
-transition: all 0.15s ease;
-position: relative;
-display: inline-flex;
-align-items: center;
-gap: 10px;
-}
-.btn-primary:hover:not(:disabled) {
-transform: translate(-2px, -2px);
-box-shadow: 7px 7px 0 var(–oxblood);
-}
-.btn-primary:active:not(:disabled) {
-transform: translate(2px, 2px);
-box-shadow: 2px 2px 0 var(–oxblood);
-}
-.btn-primary:disabled {
-opacity: 0.4;
-cursor: not-allowed;
-box-shadow: 5px 5px 0 var(–paper-shadow);
-}
-.btn-primary .arrow {
 font-size: 14px;
+color: var(–ink-2);
+max-width: 400px;
 }
 
-/* ––––– Status / messages ––––– */
+/* ============ Status ============ */
 .status {
-margin-top: 24px;
-padding: 14px 18px;
+margin-top: 20px;
+padding: 14px 16px;
+border-radius: var(–radius);
+background: var(–bg-elev);
+border: 1px solid var(–rule);
+border-left: 3px solid var(–success);
 font-family: var(–mono);
-font-size: 12px;
+font-size: 12.5px;
 color: var(–ink);
-border-left: 3px solid var(–moss);
-background: rgba(74,90,58,0.06);
 display: none;
+animation: slide-in 0.25s ease;
 }
 .status.show { display: block; }
-.status.error { border-left-color: var(–error); background: rgba(138,42,26,0.06); color: var(–error); }
+.status.error {
+border-left-color: var(–accent);
+background: var(–accent-soft);
+}
 .status .label {
-text-transform: uppercase;
-letter-spacing: 0.16em;
+font-family: var(–mono);
 font-size: 10px;
-color: var(–ink-faint);
+text-transform: uppercase;
+letter-spacing: 0.18em;
+color: var(–ink-3);
 margin-bottom: 4px;
 }
+.status.error .label { color: var(–accent); }
+@keyframes slide-in {
+from { opacity: 0; transform: translateY(-4px); }
+to   { opacity: 1; transform: translateY(0); }
+}
 
-/* ––––– Footer / colophon ––––– */
-.footer {
+/* ============ Footer ============ */
+.foot {
 margin-top: 64px;
 padding-top: 24px;
 border-top: 1px solid var(–rule);
@@ -624,30 +583,160 @@ align-items: center;
 font-family: var(–mono);
 font-size: 10.5px;
 text-transform: uppercase;
-letter-spacing: 0.18em;
-color: var(–ink-faint);
+letter-spacing: 0.16em;
+color: var(–ink-3);
+flex-wrap: wrap;
+gap: 12px;
 }
-.footer .ornament-mark {
+.foot .mark {
 font-family: var(–serif);
+font-style: italic;
 font-size: 18px;
-color: var(–oxblood);
+color: var(–accent);
 letter-spacing: 0;
 text-transform: none;
 }
 
-/* ––––– Animations ––––– */
+/* ============ Modal (preview) ============ */
+.modal {
+position: fixed;
+inset: 0;
+background: rgba(14,12,10,0.6);
+backdrop-filter: blur(4px);
+-webkit-backdrop-filter: blur(4px);
+display: none;
+align-items: center;
+justify-content: center;
+z-index: 100;
+padding: 24px;
+animation: fade-in 0.2s ease;
+}
+.modal.show { display: flex; }
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+.modal-panel {
+background: var(–bg);
+border: 1px solid var(–rule-strong);
+border-radius: var(–radius);
+width: 100%;
+max-width: 720px;
+max-height: 85vh;
+display: flex;
+flex-direction: column;
+box-shadow: 0 24px 60px -12px rgba(14,12,10,0.4);
+animation: pop-in 0.25s cubic-bezier(.4,0,.2,1);
+}
+@keyframes pop-in {
+from { opacity: 0; transform: scale(0.96) translateY(6px); }
+to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-head {
+padding: 18px 24px;
+border-bottom: 1px solid var(–rule);
+display: flex;
+justify-content: space-between;
+align-items: center;
+}
+.modal-title {
+font-family: var(–serif);
+font-size: 18px;
+font-weight: 500;
+font-style: italic;
+color: var(–ink);
+}
+.modal-close {
+background: transparent;
+border: 1px solid var(–rule);
+width: 30px; height: 30px;
+border-radius: var(–radius);
+color: var(–ink-2);
+cursor: pointer;
+font-family: var(–mono);
+font-size: 14px;
+transition: all 0.15s;
+}
+.modal-close:hover { border-color: var(–ink); color: var(–ink); }
+.modal-body {
+overflow-y: auto;
+padding: 32px 40px;
+flex: 1;
+background: var(–bg-elev);
+}
+
+.preview-content h1, .preview-content h2, .preview-content h3 {
+font-family: var(–serif);
+font-weight: 500;
+font-variation-settings: “opsz” 144;
+color: var(–ink);
+margin: 1.4em 0 0.5em;
+line-height: 1.2;
+}
+.preview-content h1:first-child { margin-top: 0; }
+.preview-content h1 {
+font-size: 28px;
+font-style: italic;
+color: var(–accent);
+border-bottom: 1px solid var(–rule);
+padding-bottom: 10px;
+}
+.preview-content h2 { font-size: 22px; }
+.preview-content h3 { font-size: 18px; font-style: italic; }
+.preview-content p {
+margin: 0.7em 0;
+line-height: 1.7;
+color: var(–ink);
+font-size: 16px;
+}
+.preview-content code {
+font-family: var(–mono);
+font-size: 0.85em;
+background: var(–bg-sunk);
+padding: 1px 6px;
+border-radius: 3px;
+}
+.preview-content pre {
+background: var(–ink);
+color: var(–bg);
+padding: 16px;
+overflow-x: auto;
+margin: 1em 0;
+border-radius: var(–radius);
+font-size: 13px;
+}
+.preview-content pre code { background: none; padding: 0; color: inherit; }
+.preview-content blockquote {
+border-left: 3px solid var(–accent);
+padding-left: 18px;
+margin: 1em 0;
+font-style: italic;
+color: var(–ink-2);
+}
+.preview-content ul, .preview-content ol { margin: 0.6em 0 0.6em 1.4em; }
+.preview-content li { margin: 0.3em 0; }
+.preview-content a { color: var(–accent); text-decoration: underline; text-underline-offset: 3px; }
+.preview-content hr { border: none; border-top: 1px solid var(–rule); margin: 2em 0; }
+.preview-content img { max-width: 100%; height: auto; }
+
+/* ============ Animations ============ */
 @keyframes fade-up {
 from { opacity: 0; transform: translateY(8px); }
-to { opacity: 1; transform: translateY(0); }
+to   { opacity: 1; transform: translateY(0); }
 }
 .frame > * { animation: fade-up 0.5s ease backwards; }
-.masthead { animation-delay: 0s; }
-.work { animation-delay: 0.1s; }
-.imprint { animation-delay: 0.2s; }
-.footer { animation-delay: 0.3s; }
+.mast       { animation-delay: 0s; }
+.upload     { animation-delay: 0.05s; }
+.form-section { animation-delay: 0.15s; }
+.action     { animation-delay: 0.2s; }
+.foot       { animation-delay: 0.25s; }
+.file-item  { animation: fade-up 0.3s ease backwards; }
 
-/* hidden file inputs */
-input[type=“file”] { display: none; }
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+.dropzone:focus-visible {
+outline: 2px solid var(–accent);
+outline-offset: 2px;
+}
 </style>
 
 </head>
@@ -655,163 +744,153 @@ input[type=“file”] { display: none; }
   <div class="frame">
 
 ```
-<header class="masthead">
-  <div>
-    <div class="brand">
-      <div class="brand-mark">B</div>
-      <h1 class="brand-name">Bindery <em>&amp; Press</em></h1>
-    </div>
-    <p class="tagline">A craftsman's tool for binding manuscripts in markdown into proper, portable EPUB volumes.</p>
+<header class="mast">
+  <div class="mast-brand">
+    <div class="mast-name">Bindery<em>.</em></div>
+    <div class="mast-tag">Markdown → EPUB</div>
   </div>
-  <div class="masthead-meta">
-    <div><strong>Edition</strong> &nbsp; MMXXVI</div>
-    <div><strong>Format</strong> &nbsp; EPUB 3.0</div>
-    <div><strong>Folio</strong> &nbsp; <span id="folio">000</span></div>
-  </div>
+  <div class="mast-meta"><span class="dot"></span> Ready</div>
 </header>
 
-<main class="work">
+<!-- ============ STEP 1: UPLOAD ============ -->
+<section class="upload">
+  <div class="step">
+    <div class="step-num">01</div>
+    <div class="step-title">Upload <em>your manuscript</em></div>
+    <div class="step-rule"></div>
+  </div>
 
-  <!-- ============ MANUSCRIPT ============ -->
-  <section class="manuscript">
-    <div class="section-label">
-      <span class="num">I</span>
-      The Manuscript
-      <span class="rule"></span>
+  <input type="file" id="file-input" class="vh" multiple
+         accept=".md,.markdown,.mdown,.mkd,.txt,text/markdown,text/plain" />
+
+  <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload markdown files">
+    <div class="zone-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 6h14l8 8v22a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z"/>
+        <path d="M28 6v8h8"/>
+        <path d="M16 24l4 4 4-6 4 8 4-4"/>
+      </svg>
     </div>
+    <h2 class="zone-title">Drop <em>.md</em> files here</h2>
+    <p class="zone-sub">Each file becomes a chapter, in the order you arrange them.</p>
+    <div class="zone-hint">Click or drag to browse</div>
+  </div>
 
-    <label for="file-input" class="dropzone" id="dropzone">
-      <div class="dropzone-text">
-        Drop <strong>.md</strong> files here, or click to browse. Multiple files become chapters in order.
+  <div class="files-wrap" id="files-wrap" hidden>
+    <div class="files-head">
+      <div class="files-count"><span class="num" id="file-count">0</span> chapter<span id="file-plural">s</span></div>
+      <div class="files-actions">
+        <button class="btn btn-text" id="add-more-btn" type="button">+ Add more</button>
+        <button class="btn btn-text" id="preview-btn" type="button">Preview</button>
+        <button class="btn btn-text" id="clear-btn" type="button" style="color:var(--accent);">Clear all</button>
       </div>
-      <span class="dropzone-icon">Browse</span>
-    </label>
-    <input type="file" id="file-input" accept=".md,.markdown,text/markdown" multiple />
-
-    <ul class="file-list" id="file-list"></ul>
-
-    <div class="editor-wrap">
-      <div class="editor-tabs">
-        <button class="editor-tab active" data-tab="write">Write</button>
-        <button class="editor-tab" data-tab="preview">Preview</button>
-      </div>
-      <div class="editor-pane active" id="pane-write">
-        <textarea
-          class="manuscript-input"
-          id="markdown-input"
-          spellcheck="true"
-          placeholder="# Chapter One
-```
-
-It was the best of times, it was the worst of times…
-
-Begin typing or paste your markdown here. Use # for chapter titles — each # heading becomes a new chapter in the bound volume.”></textarea>
-</div>
-<div class="editor-pane" id="pane-preview">
-<div class="preview-pane" id="preview"></div>
-</div>
-</div>
+    </div>
+    <ol class="files" id="file-list"></ol>
+  </div>
 </section>
 
-```
-  <!-- ============ DETAILS ============ -->
-  <aside class="details">
-    <div class="section-label">
-      <span class="num">II</span>
-      The Colophon
-      <span class="rule"></span>
+<!-- ============ STEP 2: DETAILS ============ -->
+<section class="form-section">
+  <div class="step">
+    <div class="step-num">02</div>
+    <div class="step-title">Set <em>the details</em></div>
+    <div class="step-rule"></div>
+  </div>
+
+  <div class="form-grid">
+    <div class="field full">
+      <label for="title">Title <span class="req">*</span></label>
+      <input type="text" id="title" placeholder="A Tale of Two Cities" />
     </div>
 
-    <div class="colophon">
-      <div class="field">
-        <label for="title">Title</label>
-        <input type="text" id="title" placeholder="A Tale of Two Cities" />
-      </div>
+    <div class="field">
+      <label for="author">Author <span class="req">*</span></label>
+      <input type="text" id="author" placeholder="Charles Dickens" />
+    </div>
 
-      <div class="field">
-        <label for="author">Author</label>
-        <input type="text" id="author" placeholder="Charles Dickens" />
-      </div>
+    <div class="field">
+      <label for="publisher">Publisher</label>
+      <input type="text" id="publisher" placeholder="Bindery Press" />
+    </div>
 
-      <div class="field-row">
-        <div class="field">
-          <label for="language">Language</label>
-          <select id="language">
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
-            <option value="it">Italiano</option>
-            <option value="pt">Português</option>
-            <option value="nl">Nederlands</option>
-            <option value="sv">Svenska</option>
-            <option value="ja">日本語</option>
-            <option value="zh">中文</option>
-            <option value="ko">한국어</option>
-            <option value="ru">Русский</option>
-            <option value="ar">العربية</option>
-          </select>
+    <div class="field">
+      <label for="language">Language</label>
+      <select id="language">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+        <option value="it">Italiano</option>
+        <option value="pt">Português</option>
+        <option value="nl">Nederlands</option>
+        <option value="sv">Svenska</option>
+        <option value="ja">日本語</option>
+        <option value="zh">中文</option>
+        <option value="ko">한국어</option>
+        <option value="ru">Русский</option>
+        <option value="ar">العربية</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="font-choice">Body type</label>
+      <select id="font-choice">
+        <option value="serif">Serif (Georgia)</option>
+        <option value="sans">Sans-serif</option>
+        <option value="mono">Monospace</option>
+      </select>
+    </div>
+
+    <div class="field full">
+      <label for="description">Description</label>
+      <textarea id="description" placeholder="A short blurb that appears in the reader's library..."></textarea>
+    </div>
+
+    <div class="field">
+      <label for="split-mode">Chapter break</label>
+      <select id="split-mode">
+        <option value="files" selected>Per uploaded file</option>
+        <option value="h1">On every # heading</option>
+        <option value="h2">On every ## heading</option>
+        <option value="none">Single chapter</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Cover image</label>
+      <input type="file" id="cover-input" class="vh" accept="image/jpeg,image/png" />
+      <label for="cover-input" class="btn btn-secondary" style="cursor:pointer;width:100%;">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="12" height="12" rx="1"/><circle cx="6" cy="6" r="1.2"/><path d="M14 10l-3-3-7 7"/></svg>
+        Choose image
+      </label>
+    </div>
+
+    <div class="field full" id="cover-row-wrap" hidden>
+      <label>Cover preview</label>
+      <div class="cover-row">
+        <div class="cover-preview" id="cover-preview">
+          <div class="cover-placeholder">No cover</div>
         </div>
-        <div class="field">
-          <label for="publisher">Publisher</label>
-          <input type="text" id="publisher" placeholder="Bindery Press" />
-        </div>
-      </div>
-
-      <div class="field">
-        <label for="description">Description</label>
-        <textarea id="description" placeholder="A short blurb that will appear in your reader's library..."></textarea>
-      </div>
-
-      <div class="colophon-rule ornament">❦</div>
-
-      <div class="field">
-        <label>Cover Plate</label>
-        <div class="cover">
-          <div class="cover-preview" id="cover-preview">
-            <div class="placeholder">No<br>Cover<br>Set</div>
+        <div class="cover-controls">
+          <p style="font-family:var(--serif);font-style:italic;color:var(--ink-2);font-size:14px;line-height:1.5;" id="cover-name">No cover image set.</p>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <label for="cover-input" class="btn btn-text" style="cursor:pointer;padding:0;">Replace</label>
+            <span style="color:var(--ink-3);">·</span>
+            <button class="btn btn-text" id="cover-clear" type="button" style="padding:0;color:var(--accent);">Remove</button>
           </div>
-          <div class="cover-controls">
-            <label for="cover-input" class="btn-secondary">Choose Image</label>
-            <input type="file" id="cover-input" accept="image/jpeg,image/png" />
-            <button type="button" class="btn-secondary" id="cover-clear" style="display:none;">Remove</button>
-            <p class="cover-help">JPG or PNG. Portrait, 1600×2400 looks best.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="colophon-rule"></div>
-
-      <div class="field-row">
-        <div class="field">
-          <label for="font-choice">Type</label>
-          <select id="font-choice">
-            <option value="serif">Serif (Classic)</option>
-            <option value="sans">Sans-serif (Modern)</option>
-            <option value="mono">Monospace (Technical)</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="split-mode">Chapter Break</label>
-          <select id="split-mode">
-            <option value="h1">On every # heading</option>
-            <option value="h2">On every ## heading</option>
-            <option value="files">By uploaded file</option>
-            <option value="none">Single chapter</option>
-          </select>
         </div>
       </div>
     </div>
-  </aside>
-</main>
+  </div>
+</section>
 
-<!-- ============ BIND ============ -->
-<section class="imprint">
-  <p class="imprint-text">
-    When the manuscript is set and the colophon entered, <span class="em">press to bind</span> &mdash; your volume will be assembled and offered for download.
+<!-- ============ STEP 3: BIND ============ -->
+<section class="action">
+  <p class="action-info">
+    Your manuscript will be assembled into a standards-compliant EPUB 3 file, ready for any reader.
   </p>
-  <button class="btn-primary" id="bind-btn">
-    Bind &amp; Publish
+  <button class="btn btn-primary" id="bind-btn" type="button" disabled>
+    Bind &amp; Download
     <span class="arrow">→</span>
   </button>
 </section>
@@ -821,76 +900,118 @@ Begin typing or paste your markdown here. Use # for chapter titles — each # he
   <div id="status-msg"></div>
 </div>
 
-<footer class="footer">
-  <div>Set in Fraunces &amp; JetBrains Mono</div>
-  <div class="ornament-mark">⁂</div>
-  <div>EPUB 3 · IDPF compliant</div>
+<footer class="foot">
+  <div>Set in Fraunces &amp; Geist Mono</div>
+  <div class="mark">⁂</div>
+  <div>EPUB 3.0 · IDPF compliant</div>
 </footer>
 ```
 
+  </div>
+
+  <!-- ============ Preview modal ============ -->
+
+  <div class="modal" id="modal">
+    <div class="modal-panel">
+      <div class="modal-head">
+        <div class="modal-title" id="modal-title">Manuscript preview</div>
+        <button class="modal-close" id="modal-close" type="button" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="preview-content" id="preview-content"></div>
+      </div>
+    </div>
   </div>
 
 <script>
 /* ============================================================
    Bindery — markdown → EPUB
    ============================================================ */
-
 (function () {
-  // ---------- State ----------
-  const state = {
-    files: [],         // { name, content, size }
-    coverData: null,   // { dataUrl, mime, ext, blob }
-  };
+  'use strict';
 
-  // ---------- Elements ----------
+  const state = {
+    files: [],
+    coverData: null,
+  };
+  let fileIdCounter = 0;
+
   const $ = (id) => document.getElementById(id);
   const els = {
-    dropzone:   $('dropzone'),
-    fileInput:  $('file-input'),
-    fileList:   $('file-list'),
-    mdInput:    $('markdown-input'),
-    preview:    $('preview'),
-    folio:      $('folio'),
-    title:      $('title'),
-    author:     $('author'),
-    language:   $('language'),
-    publisher:  $('publisher'),
-    description:$('description'),
-    coverInput: $('cover-input'),
-    coverPrev:  $('cover-preview'),
-    coverClear: $('cover-clear'),
-    fontChoice: $('font-choice'),
-    splitMode:  $('split-mode'),
-    bindBtn:    $('bind-btn'),
-    status:     $('status'),
-    statusLbl:  $('status-label'),
-    statusMsg:  $('status-msg'),
-    tabs:       document.querySelectorAll('.editor-tab'),
-    panes: {
-      write:   $('pane-write'),
-      preview: $('pane-preview'),
-    },
+    dropzone:    $('dropzone'),
+    fileInput:   $('file-input'),
+    filesWrap:   $('files-wrap'),
+    fileList:    $('file-list'),
+    fileCount:   $('file-count'),
+    filePlural:  $('file-plural'),
+    addMoreBtn:  $('add-more-btn'),
+    previewBtn:  $('preview-btn'),
+    clearBtn:    $('clear-btn'),
+    title:       $('title'),
+    author:      $('author'),
+    language:    $('language'),
+    publisher:   $('publisher'),
+    description: $('description'),
+    coverInput:  $('cover-input'),
+    coverPrev:   $('cover-preview'),
+    coverClear:  $('cover-clear'),
+    coverRowWrap:$('cover-row-wrap'),
+    coverName:   $('cover-name'),
+    fontChoice:  $('font-choice'),
+    splitMode:   $('split-mode'),
+    bindBtn:     $('bind-btn'),
+    status:      $('status'),
+    statusLbl:   $('status-label'),
+    statusMsg:   $('status-msg'),
+    modal:       $('modal'),
+    modalClose:  $('modal-close'),
+    modalTitle:  $('modal-title'),
+    previewContent: $('preview-content'),
   };
 
-  // ---------- Tabs ----------
-  els.tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      els.tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const which = tab.dataset.tab;
-      Object.entries(els.panes).forEach(([k, p]) => {
-        p.classList.toggle('active', k === which);
-      });
-      if (which === 'preview') renderPreview();
-    });
-  });
-
-  // ---------- Folio counter (just decorative) ----------
-  function updateFolio() {
-    const text = combinedMarkdown();
-    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-    els.folio.textContent = String(words).padStart(3, '0');
+  // ---------- Helpers ----------
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
+  const escapeXml = escapeHtml;
+
+  function formatBytes(b) {
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
+    return (b / 1048576).toFixed(2) + ' MB';
+  }
+  function uuidv4() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+  function safeFilename(s) {
+    return s.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'untitled';
+  }
+  function flash(msg, kind = 'ok', label = null) {
+    els.status.classList.add('show');
+    els.status.classList.toggle('error', kind === 'error');
+    els.statusLbl.textContent = label || (kind === 'error' ? 'Error' : 'Status');
+    els.statusMsg.textContent = msg;
+  }
+
+  // ---------- Click triggers (very reliable) ----------
+  els.dropzone.addEventListener('click', (e) => {
+    e.preventDefault();
+    els.fileInput.click();
+  });
+  els.dropzone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      els.fileInput.click();
+    }
+  });
+  els.addMoreBtn.addEventListener('click', () => els.fileInput.click());
 
   // ---------- Drag & drop ----------
   ['dragenter', 'dragover'].forEach(evt => {
@@ -906,40 +1027,66 @@ Begin typing or paste your markdown here. Use # for chapter titles — each # he
     });
   });
   els.dropzone.addEventListener('drop', e => {
-    const files = Array.from(e.dataTransfer.files || []);
-    handleFiles(files);
-  });
-  els.fileInput.addEventListener('change', e => {
-    const files = Array.from(e.target.files || []);
-    handleFiles(files);
-    els.fileInput.value = '';
+    handleFiles(Array.from(e.dataTransfer?.files || []));
   });
 
+  // Allow drop anywhere (so user doesn't need precise targeting)
+  document.addEventListener('dragover', e => e.preventDefault());
+  document.addEventListener('drop', e => {
+    if (e.target.closest('.dropzone')) return;
+    e.preventDefault();
+    if (e.dataTransfer?.files?.length) {
+      handleFiles(Array.from(e.dataTransfer.files));
+    }
+  });
+
+  els.fileInput.addEventListener('change', e => {
+    handleFiles(Array.from(e.target.files || []));
+    e.target.value = ''; // allow re-uploading same file
+  });
+
+  // ---------- File handling ----------
+  function isMarkdownFile(file) {
+    if (/\.(md|markdown|mdown|mkd|txt|text)$/i.test(file.name)) return true;
+    if (file.type === 'text/markdown' || file.type === 'text/plain') return true;
+    return false;
+  }
+
   function handleFiles(files) {
-    const mdFiles = files.filter(f =>
-      /\.(md|markdown|txt)$/i.test(f.name) || f.type === 'text/markdown'
-    );
-    if (!mdFiles.length) {
-      flash('Only markdown (.md) files accepted.', 'error');
+    if (!files || !files.length) return;
+    const accepted = files.filter(isMarkdownFile);
+    const rejected = files.length - accepted.length;
+    if (!accepted.length) {
+      flash('No markdown files found. Accepted: .md, .markdown, .txt', 'error');
       return;
     }
-    let pending = mdFiles.length;
-    mdFiles.forEach(file => {
+    let pending = accepted.length;
+    let added = 0;
+    accepted.forEach(file => {
       const reader = new FileReader();
       reader.onload = e => {
         state.files.push({
+          id: ++fileIdCounter,
           name: file.name,
-          content: e.target.result,
+          content: String(e.target.result || ''),
           size: file.size,
         });
+        added++;
         if (--pending === 0) {
           renderFileList();
-          // If no manuscript text yet, show first file in editor
-          if (!els.mdInput.value.trim() && state.files.length) {
-            els.mdInput.value = combinedMarkdown();
+          updateBindState();
+          tryAutofillTitle();
+          if (rejected > 0) {
+            flash(`Added ${added} file${added === 1 ? '' : 's'}; skipped ${rejected} non-markdown file${rejected === 1 ? '' : 's'}.`, 'ok');
+          } else {
+            flash(`Added ${added} file${added === 1 ? '' : 's'}.`, 'ok');
+            setTimeout(() => els.status.classList.remove('show'), 2200);
           }
-          updateFolio();
         }
+      };
+      reader.onerror = () => {
+        pending--;
+        flash(`Couldn't read ${file.name}`, 'error');
       };
       reader.readAsText(file);
     });
@@ -948,38 +1095,83 @@ Begin typing or paste your markdown here. Use # for chapter titles — each # he
   function renderFileList() {
     els.fileList.innerHTML = '';
     if (!state.files.length) {
-      els.fileList.classList.remove('has-files');
+      els.filesWrap.hidden = true;
       return;
     }
-    els.fileList.classList.add('has-files');
+    els.filesWrap.hidden = false;
+    els.fileCount.textContent = state.files.length;
+    els.filePlural.textContent = state.files.length === 1 ? '' : 's';
+
     state.files.forEach((file, idx) => {
       const li = document.createElement('li');
+      li.className = 'file-item';
+      li.style.animationDelay = `${idx * 30}ms`;
+      const wordCount = file.content.split(/\s+/).filter(Boolean).length;
       li.innerHTML = `
-        <span>
-          <span class="file-name">${escapeHtml(file.name)}</span>
-          <span class="file-meta"> · ${formatBytes(file.size)}</span>
-        </span>
-        <button class="file-remove" data-idx="${idx}" title="Remove">✕</button>
+        <div class="file-index">${String(idx + 1).padStart(2, '0')}</div>
+        <div class="file-info">
+          <div class="file-name">${escapeHtml(file.name)}</div>
+          <div class="file-meta">${formatBytes(file.size)} · ${wordCount.toLocaleString()} words</div>
+        </div>
+        <div class="file-controls">
+          <button class="file-btn" data-act="up" data-id="${file.id}" title="Move up" ${idx === 0 ? 'disabled' : ''}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10l5-5 5 5"/></svg>
+          </button>
+          <button class="file-btn" data-act="down" data-id="${file.id}" title="Move down" ${idx === state.files.length - 1 ? 'disabled' : ''}>
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6l5 5 5-5"/></svg>
+          </button>
+          <button class="file-btn danger" data-act="remove" data-id="${file.id}" title="Remove">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l10 10M13 3L3 13"/></svg>
+          </button>
+        </div>
       `;
       els.fileList.appendChild(li);
     });
-    els.fileList.querySelectorAll('.file-remove').forEach(btn => {
+
+    els.fileList.querySelectorAll('.file-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        state.files.splice(parseInt(btn.dataset.idx), 1);
+        const id = parseInt(btn.dataset.id);
+        const act = btn.dataset.act;
+        const idx = state.files.findIndex(f => f.id === id);
+        if (idx === -1) return;
+        if (act === 'up' && idx > 0) {
+          [state.files[idx - 1], state.files[idx]] = [state.files[idx], state.files[idx - 1]];
+        } else if (act === 'down' && idx < state.files.length - 1) {
+          [state.files[idx + 1], state.files[idx]] = [state.files[idx], state.files[idx + 1]];
+        } else if (act === 'remove') {
+          state.files.splice(idx, 1);
+        }
         renderFileList();
-        updateFolio();
+        updateBindState();
       });
     });
   }
 
-  function combinedMarkdown() {
-    if (els.mdInput.value.trim()) return els.mdInput.value;
-    return state.files.map(f => f.content).join('\n\n');
+  function tryAutofillTitle() {
+    if (els.title.value.trim()) return;
+    if (state.files.length === 1) {
+      const m = state.files[0].content.match(/^#\s+(.+)$/m);
+      if (m) {
+        els.title.value = m[1].trim();
+      } else {
+        const name = state.files[0].name.replace(/\.[^.]+$/, '');
+        els.title.value = name.replace(/[-_]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+      }
+    }
   }
 
-  // ---------- Cover image ----------
+  els.clearBtn.addEventListener('click', () => {
+    if (!state.files.length) return;
+    if (confirm('Remove all uploaded files?')) {
+      state.files = [];
+      renderFileList();
+      updateBindState();
+    }
+  });
+
+  // ---------- Cover ----------
   els.coverInput.addEventListener('change', e => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     if (!/^image\/(jpeg|png)$/.test(file.type)) {
       flash('Cover must be JPEG or PNG.', 'error');
@@ -987,121 +1179,61 @@ Begin typing or paste your markdown here. Use # for chapter titles — each # he
     }
     const reader = new FileReader();
     reader.onload = ev => {
-      const ext = file.type === 'image/png' ? 'png' : 'jpg';
       state.coverData = {
         dataUrl: ev.target.result,
         mime: file.type,
-        ext,
+        ext: file.type === 'image/png' ? 'png' : 'jpg',
         blob: file,
+        name: file.name,
       };
       els.coverPrev.innerHTML = `<img src="${ev.target.result}" alt="Cover">`;
-      els.coverClear.style.display = 'inline-block';
+      els.coverName.textContent = file.name;
+      els.coverRowWrap.hidden = false;
     };
     reader.readAsDataURL(file);
   });
   els.coverClear.addEventListener('click', () => {
     state.coverData = null;
     els.coverInput.value = '';
-    els.coverPrev.innerHTML = '<div class="placeholder">No<br>Cover<br>Set</div>';
-    els.coverClear.style.display = 'none';
+    els.coverPrev.innerHTML = '<div class="cover-placeholder">No cover</div>';
+    els.coverRowWrap.hidden = true;
   });
 
-  // ---------- Live preview ----------
-  function renderPreview() {
-    const md = combinedMarkdown();
-    if (!md.trim()) {
-      els.preview.innerHTML = '<div class="preview-empty">Nothing to preview yet. Write or import a manuscript first.</div>';
+  // ---------- Preview modal ----------
+  function combinedMarkdown() {
+    return state.files.map(f => f.content).join('\n\n');
+  }
+  function openPreview() {
+    if (!state.files.length) {
+      flash('Upload at least one file to preview.', 'error');
       return;
     }
-    els.preview.innerHTML = marked.parse(md);
+    els.modalTitle.textContent = (els.title.value || 'Manuscript') + ' — preview';
+    els.previewContent.innerHTML = marked.parse(combinedMarkdown());
+    els.modal.classList.add('show');
   }
-
-  els.mdInput.addEventListener('input', () => {
-    updateFolio();
+  function closePreview() { els.modal.classList.remove('show'); }
+  els.previewBtn.addEventListener('click', openPreview);
+  els.modalClose.addEventListener('click', closePreview);
+  els.modal.addEventListener('click', e => { if (e.target === els.modal) closePreview(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && els.modal.classList.contains('show')) closePreview();
   });
 
-  // ---------- Status messages ----------
-  function flash(msg, kind = 'ok', label = null) {
-    els.status.classList.add('show');
-    els.status.classList.toggle('error', kind === 'error');
-    els.statusLbl.textContent = label || (kind === 'error' ? 'Error' : 'Status');
-    els.statusMsg.textContent = msg;
+  // ---------- Marked setup ----------
+  marked.setOptions({ gfm: true, breaks: false });
+  function toXhtmlSafe(html) {
+    return html
+      .replace(/<br\s*>/gi, '<br />')
+      .replace(/<hr\s*>/gi, '<hr />')
+      .replace(/<img([^>]*?)(?<!\/)>/gi, '<img$1 />');
   }
 
-  // ---------- Helpers ----------
-  function escapeHtml(s) {
-    return String(s)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-  function escapeXml(s) { return escapeHtml(s); }
-  function formatBytes(b) {
-    if (b < 1024) return b + ' B';
-    if (b < 1048576) return (b / 1024).toFixed(1) + ' KB';
-    return (b / 1048576).toFixed(1) + ' MB';
-  }
-  function uuidv4() {
-    // Simple UUID v4
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0;
-      const v = c === 'x' ? r : (r & 0x3 | 0x8);
-      return v.toString(16);
-    });
-  }
-  function safeFilename(s) {
-    return s.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'untitled';
+  function updateBindState() {
+    els.bindBtn.disabled = state.files.length === 0;
   }
 
-  // ---------- Markdown → chapters ----------
-  function splitChapters(markdown, mode) {
-    if (mode === 'none' || !markdown.trim()) {
-      return [{ title: 'Chapter', content: markdown }];
-    }
-    if (mode === 'files') {
-      if (state.files.length) {
-        return state.files.map((f, i) => {
-          // try to extract a title from first heading
-          const m = f.content.match(/^#{1,3}\s+(.+)/m);
-          return {
-            title: m ? m[1].trim() : f.name.replace(/\.[^.]+$/, ''),
-            content: f.content,
-          };
-        });
-      }
-      return [{ title: 'Chapter', content: markdown }];
-    }
-    const headingLevel = mode === 'h2' ? 2 : 1;
-    const re = new RegExp(`^#{${headingLevel}}\\s+(.+)$`, 'gm');
-    const splits = [];
-    let last = 0;
-    let lastTitle = null;
-    let match;
-    while ((match = re.exec(markdown)) !== null) {
-      if (last !== match.index) {
-        splits.push({
-          title: lastTitle || 'Front Matter',
-          content: markdown.slice(last, match.index).trim(),
-        });
-      }
-      lastTitle = match[1].trim();
-      last = match.index;
-    }
-    if (last < markdown.length) {
-      splits.push({
-        title: lastTitle || 'Chapter',
-        content: markdown.slice(last).trim(),
-      });
-    }
-    // remove empty front matter if first split is empty
-    return splits.filter(s => s.content.trim()).length
-      ? splits.filter(s => s.content.trim())
-      : [{ title: 'Chapter', content: markdown }];
-  }
-
-  // ---------- EPUB stylesheet (book interior) ----------
+  // ---------- EPUB construction ----------
   function bookCss(fontChoice) {
     const families = {
       serif: `Georgia, "Iowan Old Style", "Palatino Linotype", Palatino, "Times New Roman", serif`,
@@ -1116,11 +1248,9 @@ html { font-size: 100%; }
 body {
   font-family: ${family};
   line-height: 1.55;
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   text-align: justify;
-  hyphens: auto;
-  -webkit-hyphens: auto;
+  hyphens: auto; -webkit-hyphens: auto;
   color: #1a1614;
   font-size: 1em;
 }
@@ -1134,24 +1264,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 h1 {
   font-size: 1.8em;
-  margin-top: 0;
   page-break-before: always;
   text-align: center;
   font-style: italic;
   font-weight: 500;
   padding: 1.2em 0 0.6em;
   border-bottom: 1px solid #ccc;
+  margin-top: 0;
 }
-h1.chapter-title {
-  page-break-before: always;
-}
+h1.chapter-title { page-break-before: always; }
 h2 { font-size: 1.4em; }
 h3 { font-size: 1.15em; font-style: italic; }
 p {
   margin: 0;
   text-indent: 1.2em;
-  orphans: 2;
-  widows: 2;
+  orphans: 2; widows: 2;
 }
 p:first-of-type, h1 + p, h2 + p, h3 + p, blockquote + p, hr + p, ul + p, ol + p, pre + p {
   text-indent: 0;
@@ -1167,79 +1294,38 @@ ul, ol { margin: 0.6em 0 0.6em 1.4em; text-align: left; }
 li { margin: 0.2em 0; }
 code {
   font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
-  font-size: 0.9em;
-  background: #eee;
-  padding: 1px 4px;
-  border-radius: 2px;
+  font-size: 0.9em; background: #eee; padding: 1px 4px; border-radius: 2px;
 }
 pre {
   font-family: "SF Mono", Menlo, Consolas, "Courier New", monospace;
-  background: #f4f1ec;
-  padding: 0.8em 1em;
-  border-radius: 3px;
-  overflow-x: auto;
-  font-size: 0.85em;
-  line-height: 1.4;
-  text-align: left;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  background: #f4f1ec; padding: 0.8em 1em; border-radius: 3px;
+  overflow-x: auto; font-size: 0.85em; line-height: 1.4; text-align: left;
+  white-space: pre-wrap; word-wrap: break-word;
 }
-pre code { background: none; padding: 0; border-radius: 0; }
+pre code { background: none; padding: 0; }
 a { color: #6e2229; text-decoration: underline; }
-hr {
-  border: 0;
-  border-top: 1px solid #999;
-  width: 30%;
-  margin: 2em auto;
-}
+hr { border: 0; border-top: 1px solid #999; width: 30%; margin: 2em auto; }
 img { max-width: 100%; height: auto; display: block; margin: 1em auto; }
 table { border-collapse: collapse; margin: 1em 0; width: 100%; font-size: 0.9em; }
 th, td { border: 1px solid #ccc; padding: 0.4em 0.6em; text-align: left; }
 th { background: #f4f1ec; font-weight: 600; }
-
-/* Cover page */
-.cover-page {
-  margin: 0;
-  padding: 0;
-  text-align: center;
-  page-break-after: always;
-}
-.cover-page img {
-  max-width: 100%;
-  max-height: 100vh;
-  margin: 0 auto;
-}
-
-/* Title page */
-.title-page {
-  text-align: center;
-  page-break-after: always;
-  padding: 4em 0;
-}
+.cover-page { margin: 0; padding: 0; text-align: center; page-break-after: always; }
+.cover-page img { max-width: 100%; max-height: 100vh; margin: 0 auto; }
+.title-page { text-align: center; page-break-after: always; padding: 4em 0; }
 .title-page .book-title {
-  font-size: 2.2em;
-  font-weight: 500;
-  font-style: italic;
-  margin: 1.5em 0 0.5em;
-  line-height: 1.2;
+  font-size: 2.2em; font-weight: 500; font-style: italic;
+  margin: 1.5em 0 0.5em; line-height: 1.2;
 }
 .title-page .book-author {
-  font-size: 1.2em;
-  margin-top: 1em;
-  font-variant: small-caps;
-  letter-spacing: 0.1em;
+  font-size: 1.2em; margin-top: 1em; font-variant: small-caps; letter-spacing: 0.1em;
 }
 .title-page .book-publisher {
-  font-size: 0.9em;
-  margin-top: 6em;
-  font-variant: small-caps;
-  letter-spacing: 0.15em;
-  color: #555;
+  font-size: 0.9em; margin-top: 6em; font-variant: small-caps;
+  letter-spacing: 0.15em; color: #555;
 }
 `.trim();
   }
 
-  // ---------- XHTML wrapper ----------
   function xhtmlPage(title, bodyHtml) {
     return `<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
@@ -1255,21 +1341,48 @@ ${bodyHtml}
 </html>`;
   }
 
-  // marked setup — EPUB 3 accepts HTML5 content documents, so we use defaults.
-  // Post-process output to self-close void elements for maximum reader compatibility.
-  function toXhtmlSafe(html) {
-    return html
-      .replace(/<br\s*>/gi, '<br />')
-      .replace(/<hr\s*>/gi, '<hr />')
-      .replace(/<img([^>]*?)(?<!\/)>/gi, '<img$1 />');
-  }
-  marked.setOptions({ gfm: true, breaks: false });
-
-  // ---------- Build EPUB ----------
-  async function buildEpub() {
+  function splitChapters(mode) {
     const md = combinedMarkdown();
-    if (!md.trim()) {
-      flash('Nothing to bind. Write or import a manuscript first.', 'error');
+    if (!md.trim()) return [];
+    if (mode === 'none') return [{ title: 'Chapter', content: md }];
+    if (mode === 'files') {
+      return state.files.map((f) => {
+        const m = f.content.match(/^#{1,3}\s+(.+)/m);
+        const fallback = f.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' ');
+        return {
+          title: m ? m[1].trim() : fallback,
+          content: f.content,
+        };
+      }).filter(c => c.content.trim());
+    }
+    const headingLevel = mode === 'h2' ? 2 : 1;
+    const re = new RegExp(`^#{${headingLevel}}\\s+(.+)$`, 'gm');
+    const splits = [];
+    let last = 0, lastTitle = null, match;
+    while ((match = re.exec(md)) !== null) {
+      if (last !== match.index) {
+        splits.push({
+          title: lastTitle || 'Front Matter',
+          content: md.slice(last, match.index).trim(),
+        });
+      }
+      lastTitle = match[1].trim();
+      last = match.index;
+    }
+    if (last < md.length) {
+      splits.push({ title: lastTitle || 'Chapter', content: md.slice(last).trim() });
+    }
+    const filtered = splits.filter(s => s.content.trim());
+    return filtered.length ? filtered : [{ title: 'Chapter', content: md }];
+  }
+
+  async function buildEpub() {
+    if (!state.files.length) {
+      flash('Upload at least one markdown file first.', 'error');
+      return;
+    }
+    if (typeof JSZip === 'undefined') {
+      flash('JSZip failed to load. Check your network connection.', 'error');
       return;
     }
 
@@ -1285,20 +1398,19 @@ ${bodyHtml}
     els.bindBtn.disabled = true;
 
     try {
-      // Allow UI to update
       await new Promise(r => setTimeout(r, 30));
 
-      const chapters = splitChapters(md, splitMode);
+      const chapters = splitChapters(splitMode);
+      if (!chapters.length) throw new Error('No content to bind');
+
       const uuid = uuidv4();
       const date = new Date().toISOString().split('T')[0];
       const modified = new Date().toISOString().replace(/\.\d{3}/, '');
 
       const zip = new JSZip();
 
-      // 1. mimetype (must be first, uncompressed)
       zip.file('mimetype', 'application/epub+zip', { compression: 'STORE' });
 
-      // 2. META-INF/container.xml
       zip.file('META-INF/container.xml', `<?xml version="1.0" encoding="UTF-8"?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
@@ -1306,48 +1418,34 @@ ${bodyHtml}
   </rootfiles>
 </container>`);
 
-      // 3. OEBPS/styles.css
       zip.file('OEBPS/styles.css', bookCss(fontChoice));
 
-      // 4. Chapter files
       const chapterFiles = chapters.map((ch, i) => {
         const num = String(i + 1).padStart(3, '0');
         const filename = `chapter-${num}.xhtml`;
-        // Render markdown
         let html = marked.parse(ch.content);
         html = toXhtmlSafe(html);
-        // Make sure first heading uses chapter-title class for page-break
         html = html.replace(/<h1>/, '<h1 class="chapter-title">');
-        const xhtml = xhtmlPage(ch.title, html);
-        zip.file(`OEBPS/${filename}`, xhtml);
+        zip.file(`OEBPS/${filename}`, xhtmlPage(ch.title, html));
         return { filename, title: ch.title, id: `ch${num}` };
       });
 
-      // 5. Title page
-      const titlePageHtml = `
+      zip.file('OEBPS/title-page.xhtml', xhtmlPage(title, `
 <div class="title-page">
   <h1 class="book-title">${escapeXml(title)}</h1>
   <p class="book-author">${escapeXml(author)}</p>
   ${publisher ? `<p class="book-publisher">${escapeXml(publisher)}</p>` : ''}
-</div>`;
-      zip.file('OEBPS/title-page.xhtml', xhtmlPage(title, titlePageHtml));
+</div>`));
 
-      // 6. Cover (if provided)
-      let coverEntries = '';
-      let coverManifest = '';
-      let coverSpine = '';
-      let coverGuide = '';
+      let coverManifest = '', coverSpine = '', coverGuide = '';
       if (state.coverData) {
         const coverImgFile = `cover.${state.coverData.ext}`;
         const arrBuf = await state.coverData.blob.arrayBuffer();
         zip.file(`OEBPS/${coverImgFile}`, arrBuf);
-
-        const coverPageHtml = `
+        zip.file('OEBPS/cover.xhtml', xhtmlPage('Cover', `
 <div class="cover-page">
   <img src="${coverImgFile}" alt="Cover" />
-</div>`;
-        zip.file('OEBPS/cover.xhtml', xhtmlPage('Cover', coverPageHtml));
-
+</div>`));
         coverManifest = `
     <item id="cover-image" href="${coverImgFile}" media-type="${state.coverData.mime}" properties="cover-image"/>
     <item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>`;
@@ -1357,11 +1455,10 @@ ${bodyHtml}
     <reference type="cover" title="Cover" href="cover.xhtml"/>`;
       }
 
-      // 7. Navigation document (EPUB 3)
-      const navListItems = chapterFiles
+      const navItems = chapterFiles
         .map(c => `      <li><a href="${c.filename}">${escapeXml(c.title)}</a></li>`)
         .join('\n');
-      const navXhtml = `<?xml version="1.0" encoding="utf-8"?>
+      zip.file('OEBPS/nav.xhtml', `<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="${language}" xml:lang="${language}">
 <head>
@@ -1373,20 +1470,17 @@ ${bodyHtml}
   <nav epub:type="toc" id="toc">
     <h1>Contents</h1>
     <ol>
-${navListItems}
+${navItems}
     </ol>
   </nav>
 </body>
-</html>`;
-      zip.file('OEBPS/nav.xhtml', navXhtml);
+</html>`);
 
-      // 8. NCX (legacy, for older readers)
       const ncxPoints = chapterFiles.map((c, i) => `
     <navPoint id="navPoint-${i + 1}" playOrder="${i + 1}">
       <navLabel><text>${escapeXml(c.title)}</text></navLabel>
       <content src="${c.filename}"/>
     </navPoint>`).join('');
-
       zip.file('OEBPS/toc.ncx', `<?xml version="1.0" encoding="UTF-8"?>
 <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
   <head>
@@ -1401,7 +1495,6 @@ ${navListItems}
   </navMap>
 </ncx>`);
 
-      // 9. Build content.opf
       const manifestItems = chapterFiles
         .map(c => `    <item id="${c.id}" href="${c.filename}" media-type="application/xhtml+xml"/>`)
         .join('\n');
@@ -1409,7 +1502,7 @@ ${navListItems}
         .map(c => `    <itemref idref="${c.id}"/>`)
         .join('\n');
 
-      const contentOpf = `<?xml version="1.0" encoding="UTF-8"?>
+      zip.file('OEBPS/content.opf', `<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="bookid" xml:lang="${language}">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">
     <dc:identifier id="bookid">urn:uuid:${uuid}</dc:identifier>
@@ -1438,11 +1531,8 @@ ${spineItems}
     <reference type="toc" title="Table of Contents" href="nav.xhtml"/>
     <reference type="title-page" title="Title Page" href="title-page.xhtml"/>
   </guide>
-</package>`;
+</package>`);
 
-      zip.file('OEBPS/content.opf', contentOpf);
-
-      // Generate EPUB blob
       const blob = await zip.generateAsync({
         type: 'blob',
         mimeType: 'application/epub+zip',
@@ -1450,7 +1540,6 @@ ${spineItems}
         compressionOptions: { level: 6 },
       });
 
-      // Download
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1462,19 +1551,16 @@ ${spineItems}
 
       const sizeKb = (blob.size / 1024).toFixed(1);
       flash(`Bound — ${chapters.length} chapter${chapters.length === 1 ? '' : 's'}, ${sizeKb} KB. Your volume has been delivered.`, 'ok', 'Published');
-
     } catch (err) {
       console.error(err);
       flash(`Couldn't bind: ${err.message}`, 'error');
     } finally {
-      els.bindBtn.disabled = false;
+      updateBindState();
     }
   }
 
   els.bindBtn.addEventListener('click', buildEpub);
-
-  // initial folio
-  updateFolio();
+  updateBindState();
 })();
 </script>
 
